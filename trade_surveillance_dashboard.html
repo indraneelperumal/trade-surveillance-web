@@ -1,0 +1,336 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); font-size: 14px; color: var(--color-text-primary); }
+
+  .app { display: flex; height: 100vh; min-height: 600px; background: var(--color-background-tertiary); }
+
+  .sidebar { width: 200px; flex-shrink: 0; background: var(--color-background-primary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column; padding: 16px 0; }
+  .sidebar-logo { padding: 0 16px 20px; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; font-size: 13px; cursor: pointer; color: var(--color-text-secondary); border-radius: 0; transition: background 0.15s; position: relative; }
+  .nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .nav-item.active { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #378ADD; border-radius: 0 2px 2px 0; }
+  .nav-badge { margin-left: auto; background: #FCEBEB; color: #A32D2D; font-size: 11px; padding: 1px 6px; border-radius: 10px; font-weight: 500; }
+  .nav-icon { width: 16px; height: 16px; opacity: 0.6; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+  .topbar-title { font-size: 15px; font-weight: 500; flex: 1; }
+  .topbar-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #E6F1FB; color: #185FA5; font-weight: 500; }
+  .btn { font-size: 12px; padding: 6px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; font-family: var(--font-sans); }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .btn-primary:hover { background: #0C447C; }
+
+  .content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .metric-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .metric-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .metric-value { font-size: 24px; font-weight: 500; line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
+  .metric-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  .panel-row { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+
+  .panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+  .panel-head { padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 8px; }
+  .panel-title { font-size: 13px; font-weight: 500; flex: 1; }
+
+  .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+  .filter-label { font-size: 11px; color: var(--color-text-secondary); }
+  .chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); cursor: pointer; color: var(--color-text-secondary); }
+  .chip.on { background: #185FA5; color: #fff; border-color: #185FA5; }
+
+  .table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .table th { padding: 8px 12px; text-align: left; color: var(--color-text-secondary); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+  .table td { padding: 10px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); vertical-align: middle; }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: var(--color-background-secondary); cursor: pointer; }
+  .table tr.selected td { background: #E6F1FB; }
+
+  .sev { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+  .sev-high { background: #FCEBEB; color: #A32D2D; }
+  .sev-med { background: #FAEEDA; color: #854F0B; }
+  .sev-low { background: #EAF3DE; color: #3B6D11; }
+  .sev-none { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+
+  .status { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .status-open { background: #E6F1FB; color: #185FA5; }
+  .status-prog { background: #FAEEDA; color: #854F0B; }
+  .status-closed { background: #EAF3DE; color: #3B6D11; }
+
+  .mono { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); }
+
+  .detail-panel { display: flex; flex-direction: column; gap: 0; }
+  .detail-section { padding: 14px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .detail-section:last-child { border-bottom: none; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; font-size: 12px; }
+  .detail-row:last-child { margin-bottom: 0; }
+  .detail-key { color: var(--color-text-secondary); min-width: 90px; }
+  .detail-val { font-weight: 500; text-align: right; max-width: 140px; word-break: break-all; }
+
+  .note-stream { display: flex; flex-direction: column; gap: 0; }
+  .note { padding: 10px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+  .note:last-child { border-bottom: none; }
+  .note-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .note-author { font-weight: 500; font-size: 11px; }
+  .note-time { color: var(--color-text-secondary); font-size: 11px; }
+  .note-type { font-size: 10px; padding: 1px 6px; border-radius: 3px; }
+  .note-sys { background: var(--color-background-secondary); color: var(--color-text-tertiary); }
+  .note-human { background: #E6F1FB; color: #185FA5; }
+  .note-body { color: var(--color-text-secondary); line-height: 1.5; }
+
+  .action-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; }
+  .action-select { width: 100%; font-size: 12px; padding: 6px 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); }
+  .action-textarea { width: 100%; font-size: 12px; padding: 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); resize: none; height: 56px; }
+
+  .sparkbar { display: flex; gap: 2px; align-items: flex-end; height: 32px; }
+  .spark { border-radius: 2px; flex: 1; }
+
+  .empty-hint { padding: 24px 16px; text-align: center; color: var(--color-text-secondary); font-size: 12px; }
+
+  .model-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+  .model-status { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .model-name { flex: 1; font-weight: 500; }
+  .model-meta { color: var(--color-text-secondary); font-size: 11px; }
+</style>
+
+<h2 class="sr-only">Trade Surveillance MVP Dashboard — Alert queue and investigation workflow interface</h2>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">Sentinel</div>
+    <div class="nav-item" onclick="setView('overview')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+      Overview
+    </div>
+    <div class="nav-item active" onclick="setView('alerts')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1L10 6H15L11 9.5L12.5 15L8 12L3.5 15L5 9.5L1 6H6L8 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      Alerts
+      <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-item" onclick="setView('investigations')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M11 11L15 15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Investigations
+    </div>
+    <div class="nav-item" onclick="setView('model-runs')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 13L5 8L8 10L11 5L14 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Model Runs
+    </div>
+    <div style="flex:1"></div>
+    <div class="nav-item" onclick="setView('users')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Users
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="page-title">Alerts</span>
+      <span class="topbar-badge" id="page-badge">12 open</span>
+      <button class="btn btn-primary" onclick="sendPrompt('Help me understand how to triage a high-severity alert in this surveillance system')">New Investigation ↗</button>
+    </div>
+
+    <div class="content" id="main-content">
+      <div class="metric-row">
+        <div class="metric-card">
+          <div class="metric-label">Total alerts</div>
+          <div class="metric-value">47</div>
+          <div class="metric-sub"><span class="metric-dot" style="background:#A32D2D"></span>12 open · 8 in progress</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">High severity</div>
+          <div class="metric-value" style="color:#A32D2D">6</div>
+          <div class="metric-sub">Require immediate review</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Avg. resolution</div>
+          <div class="metric-value">1.4h</div>
+          <div class="metric-sub">Down from 2.1h last week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Model precision</div>
+          <div class="metric-value">87%</div>
+          <div class="metric-sub">Last run: 2h ago · Success</div>
+        </div>
+      </div>
+
+      <div class="panel-row">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Alert queue</span>
+            <button class="btn" style="font-size:11px;padding:4px 10px">Export</button>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Status</span>
+            <span class="chip on" onclick="toggleChip(this)">All</span>
+            <span class="chip" onclick="toggleChip(this)">Open</span>
+            <span class="chip" onclick="toggleChip(this)">In progress</span>
+            <span class="chip" onclick="toggleChip(this)">Closed</span>
+            <span style="flex:1"></span>
+            <span class="filter-label">Severity</span>
+            <span class="chip on" onclick="toggleChip(this)">All</span>
+            <span class="chip" onclick="toggleChip(this)">High</span>
+            <span class="chip" onclick="toggleChip(this)">Med</span>
+          </div>
+          <table class="table" id="alert-table">
+            <thead>
+              <tr>
+                <th>Alert</th>
+                <th>Symbol</th>
+                <th>Anomaly type</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="alert-tbody"></tbody>
+          </table>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:0.5px solid var(--color-border-tertiary);">
+            <span style="font-size:11px;color:var(--color-text-secondary)">Showing 1–8 of 47</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn" style="font-size:11px;padding:4px 10px">Prev</button>
+              <button class="btn" style="font-size:11px;padding:4px 10px">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="detail-pane" style="display:flex;flex-direction:column;">
+          <div class="panel-head">
+            <span class="panel-title" id="detail-title">Select an alert</span>
+          </div>
+          <div id="detail-body" style="flex:1;overflow-y:auto;">
+            <div class="empty-hint">Click a row to inspect the alert, linked trade, and investigation notes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALERTS = [
+  { id: 'ALT-0041', symbol: 'TSLA', type: 'Layering', severity: 'high', status: 'open', assignee: 'R. Mehta', updated: '4m ago', trade: { price: 218.40, volume: 84200, side: 'SELL', ts: '09:42:11', offHours: false, otc: false }, verdict: 'Suspicious', confidence: 0.91, summary: 'Repeated order placement and cancellation pattern detected across 12 intervals, consistent with layering to move price.', notes: [{ author: 'System', time: '09:43:00', type: 'sys', body: 'Alert auto-generated by model run #284. Flagged with confidence 0.91.' }, { author: 'R. Mehta', time: '09:55:12', type: 'human', body: 'Reviewing order book history. Pattern looks real — escalating to lead.' }] },
+  { id: 'ALT-0040', symbol: 'AAPL', type: 'Wash trade', severity: 'high', status: 'in-progress', assignee: 'P. Kumar', updated: '18m ago', trade: { price: 191.70, volume: 12500, side: 'BUY', ts: '09:31:05', offHours: false, otc: false }, verdict: 'Under review', confidence: 0.78, summary: 'Self-matching orders detected on opposing accounts linked to same beneficial owner.', notes: [{ author: 'System', time: '09:32:00', type: 'sys', body: 'Flagged as potential wash trade. Two accounts share a registered address.' }, { author: 'P. Kumar', time: '09:50:00', type: 'human', body: 'Requested KYC docs for both accounts. Awaiting compliance response.' }] },
+  { id: 'ALT-0039', symbol: 'NVDA', type: 'Front-running', severity: 'high', status: 'open', assignee: 'Unassigned', updated: '34m ago', trade: { price: 876.20, volume: 3800, side: 'BUY', ts: '09:28:44', offHours: false, otc: false }, verdict: null, confidence: 0.83, summary: 'Large buy order preceded institutional block trade by 340ms. Pattern may indicate information leakage.', notes: [{ author: 'System', time: '09:30:00', type: 'sys', body: 'Auto-flagged. No investigation opened yet.' }] },
+  { id: 'ALT-0038', symbol: 'GME', type: 'Spoofing', severity: 'med', status: 'open', assignee: 'Unassigned', updated: '1h ago', trade: { price: 21.80, volume: 220000, side: 'BUY', ts: '10:02:33', offHours: false, otc: false }, verdict: null, confidence: 0.65, summary: 'Large bid placed and rapidly withdrawn. Volume inconsistent with subsequent fill rate.', notes: [{ author: 'System', time: '10:03:00', type: 'sys', body: 'Flagged for spoofing. Confidence 0.65 — borderline case.' }] },
+  { id: 'ALT-0037', symbol: 'MSFT', type: 'Marking close', severity: 'med', status: 'in-progress', assignee: 'R. Mehta', updated: '2h ago', trade: { price: 415.60, volume: 5100, side: 'BUY', ts: '15:58:42', offHours: false, otc: false }, verdict: 'Inconclusive', confidence: 0.52, summary: 'Late-session buy cluster may be attempting to mark the close. Evidence is thin — monitoring.', notes: [{ author: 'R. Mehta', time: '16:30:00', type: 'human', body: 'Reviewed. Volume too small to be material. May close as false positive.' }] },
+  { id: 'ALT-0036', symbol: 'AMZN', type: 'Off-hours', severity: 'med', status: 'closed', assignee: 'P. Kumar', updated: '3h ago', trade: { price: 182.30, volume: 940, side: 'SELL', ts: '04:12:08', offHours: true, otc: false }, verdict: 'False positive', confidence: 0.44, summary: 'Trade occurred pre-market. Trader has documented off-hours waiver on file.', notes: [{ author: 'P. Kumar', time: '08:00:00', type: 'human', body: 'Confirmed waiver on file. Closed as false positive.' }] },
+  { id: 'ALT-0035', symbol: 'META', type: 'Layering', severity: 'low', status: 'closed', assignee: 'R. Mehta', updated: '5h ago', trade: { price: 490.10, volume: 6600, side: 'SELL', ts: '11:14:59', offHours: false, otc: false }, verdict: 'No action', confidence: 0.38, summary: 'Low-confidence flag. Order book review found no malicious intent.', notes: [{ author: 'R. Mehta', time: '12:00:00', type: 'human', body: 'Closed. Pattern explained by algorithmic MM behavior.' }] },
+  { id: 'ALT-0034', symbol: 'COIN', type: 'OTC anomaly', severity: 'low', status: 'open', assignee: 'Unassigned', updated: '6h ago', trade: { price: 211.90, volume: 1500, side: 'BUY', ts: '13:45:00', offHours: false, otc: true }, verdict: null, confidence: 0.41, summary: 'OTC trade flagged for price deviation from exchange. Within tolerance but logged.', notes: [{ author: 'System', time: '13:46:00', type: 'sys', body: 'OTC price deviation alert. Auto-logged.' }] },
+];
+
+let selectedIdx = null;
+
+function sevClass(s) {
+  if (s === 'high') return 'sev-high';
+  if (s === 'med') return 'sev-med';
+  if (s === 'low') return 'sev-low';
+  return 'sev-none';
+}
+function statusClass(s) {
+  if (s === 'open') return 'status-open';
+  if (s === 'in-progress') return 'status-prog';
+  return 'status-closed';
+}
+function statusLabel(s) {
+  if (s === 'in-progress') return 'In progress';
+  if (s === 'open') return 'Open';
+  return 'Closed';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('alert-tbody');
+  tbody.innerHTML = ALERTS.map((a, i) => `
+    <tr onclick="selectAlert(${i})" class="${selectedIdx===i?'selected':''}">
+      <td><span class="mono">${a.id}</span></td>
+      <td><strong>${a.symbol}</strong></td>
+      <td>${a.type}</td>
+      <td><span class="sev ${sevClass(a.severity)}">${a.severity.charAt(0).toUpperCase()+a.severity.slice(1)}</span></td>
+      <td><span class="status ${statusClass(a.status)}">${statusLabel(a.status)}</span></td>
+      <td style="color:var(--color-text-secondary);font-size:11px">${a.assignee}</td>
+      <td style="color:var(--color-text-secondary);font-size:11px">${a.updated}</td>
+    </tr>
+  `).join('');
+}
+
+function selectAlert(i) {
+  selectedIdx = i;
+  renderTable();
+  const a = ALERTS[i];
+  document.getElementById('detail-title').textContent = a.id + ' · ' + a.symbol;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-panel">
+      <div class="detail-section">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:10px">Alert metadata</div>
+        <div class="detail-row"><span class="detail-key">Type</span><span class="detail-val">${a.type}</span></div>
+        <div class="detail-row"><span class="detail-key">Severity</span><span class="detail-val"><span class="sev ${sevClass(a.severity)}">${a.severity.charAt(0).toUpperCase()+a.severity.slice(1)}</span></span></div>
+        <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val"><span class="status ${statusClass(a.status)}">${statusLabel(a.status)}</span></span></div>
+        <div class="detail-row"><span class="detail-key">Assignee</span><span class="detail-val">${a.assignee}</span></div>
+      </div>
+      <div class="detail-section">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:10px">Trade snapshot</div>
+        <div class="detail-row"><span class="detail-key">Symbol</span><span class="detail-val">${a.symbol}</span></div>
+        <div class="detail-row"><span class="detail-key">Price</span><span class="detail-val">$${a.trade.price.toFixed(2)}</span></div>
+        <div class="detail-row"><span class="detail-key">Volume</span><span class="detail-val">${a.trade.volume.toLocaleString()}</span></div>
+        <div class="detail-row"><span class="detail-key">Side</span><span class="detail-val">${a.trade.side}</span></div>
+        <div class="detail-row"><span class="detail-key">Timestamp</span><span class="detail-val mono">${a.trade.ts}</span></div>
+        <div class="detail-row"><span class="detail-key">Off-hours</span><span class="detail-val">${a.trade.offHours?'Yes':'No'}</span></div>
+        <div class="detail-row"><span class="detail-key">OTC</span><span class="detail-val">${a.trade.otc?'Yes':'No'}</span></div>
+      </div>
+      <div class="detail-section">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:8px">Investigation</div>
+        ${a.verdict ? `<div class="detail-row"><span class="detail-key">Verdict</span><span class="detail-val">${a.verdict}</span></div>` : ''}
+        <div class="detail-row"><span class="detail-key">Confidence</span><span class="detail-val">${Math.round(a.confidence*100)}%</span></div>
+        <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.5;margin-top:6px">${a.summary}</div>
+      </div>
+      <div class="detail-section">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:6px">Notes · ${a.notes.length}</div>
+        <div class="note-stream">
+          ${a.notes.map(n=>`
+            <div class="note">
+              <div class="note-meta">
+                <span class="note-author">${n.author}</span>
+                <span class="note-time">${n.time}</span>
+                <span class="note-type ${n.type==='sys'?'note-sys':'note-human'}">${n.type==='sys'?'system':'analyst'}</span>
+              </div>
+              <div class="note-body">${n.body}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="action-row">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);margin-bottom:4px">Actions</div>
+        <select class="action-select"><option>Set status...</option><option>Open</option><option>In progress</option><option>Closed</option></select>
+        <select class="action-select"><option>Assign to...</option><option>R. Mehta</option><option>P. Kumar</option><option>Unassigned</option></select>
+        <textarea class="action-textarea" placeholder="Add a note..."></textarea>
+        <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="sendPrompt('I am reviewing alert ${a.id} for ${a.type} on ${a.symbol}. Confidence is ${Math.round(a.confidence*100)}%. Help me determine next steps.')">Save + submit note ↗</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleChip(el) {
+  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function setView(v) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const titles = { overview: 'Overview', alerts: 'Alerts', investigations: 'Investigations', 'model-runs': 'Model Runs', users: 'Users' };
+  document.getElementById('page-title').textContent = titles[v];
+  if (v === 'alerts') {
+    document.getElementById('page-badge').textContent = '12 open';
+  } else {
+    document.getElementById('page-badge').textContent = '';
+  }
+}
+
+renderTable();
+</script>
