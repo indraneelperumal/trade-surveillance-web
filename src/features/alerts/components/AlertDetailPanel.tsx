@@ -58,7 +58,7 @@ export function AlertDetailPanel({
         <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
           Trade snapshot
         </div>
-        <TradeSnapshot trade={trade} />
+        <TradeSnapshot trade={trade} alert={alert} />
       </section>
       <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
         <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">

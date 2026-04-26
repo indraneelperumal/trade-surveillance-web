@@ -1,3 +1,4 @@
+import { normalizeAlert } from "@/lib/api/adapters/normalizeDomain";
 import { apiFetch } from "@/lib/api/client";
 import type { ListQuery, PaginatedResponse } from "@/types/api";
 import type { Alert } from "@/types/domain";
@@ -10,19 +11,26 @@ export type AlertListQuery = ListQuery & {
 };
 
 export function listAlerts(query: AlertListQuery) {
-  return apiFetch<PaginatedResponse<Alert>>("/api/v1/alerts", { query });
+  return apiFetch<PaginatedResponse<Record<string, unknown>>>("/api/v1/alerts", { query }).then(
+    (res) => ({
+      ...res,
+      items: res.items.map((row) => normalizeAlert(row)),
+    }),
+  ) as Promise<PaginatedResponse<Alert>>;
 }
 
 export function getAlert(alertId: string) {
-  return apiFetch<Alert>(`/api/v1/alerts/${alertId}`);
+  return apiFetch<Record<string, unknown>>(`/api/v1/alerts/${alertId}`).then((row) =>
+    normalizeAlert(row),
+  );
 }
 
 export function patchAlert(
   alertId: string,
   payload: Partial<Pick<Alert, "status" | "disposition" | "assignee">>,
 ) {
-  return apiFetch<Alert>(`/api/v1/alerts/${alertId}`, {
+  return apiFetch<Record<string, unknown>>(`/api/v1/alerts/${alertId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
-  });
+  }).then((row) => normalizeAlert(row));
 }

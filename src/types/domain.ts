@@ -10,6 +10,9 @@ export type Trade = {
   tradedAt: string;
   offHours?: boolean;
   otc?: boolean;
+  exchange?: string | null;
+  traderId?: string | null;
+  tradeValue?: number | null;
 };
 
 export type Alert = {
@@ -23,6 +26,10 @@ export type Alert = {
   createdAt: string;
   updatedAt: string;
   tradeId?: string | null;
+  anomalyScore?: number | null;
+  topShapFeature?: string | null;
+  exchange?: string | null;
+  traderId?: string | null;
 };
 
 export type Investigation = {

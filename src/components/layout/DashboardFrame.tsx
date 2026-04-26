@@ -23,8 +23,8 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
     queryFn: () => listAlerts({ status: "open", offset: 0, limit: 1 }),
   });
   const highSeverityQuery = useQuery({
-    queryKey: queryKeys.alerts.list({ severity: "high", offset: 0, limit: 1 }),
-    queryFn: () => listAlerts({ severity: "high", offset: 0, limit: 1 }),
+    queryKey: queryKeys.alerts.list({ severity: "high", status: "open", offset: 0, limit: 1 }),
+    queryFn: () => listAlerts({ severity: "high", status: "open", offset: 0, limit: 1 }),
   });
   const key = Object.keys(topbarByPath).find((candidate) =>
     pathname.startsWith(candidate),
@@ -34,14 +34,19 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
   const highSeverityCount = highSeverityQuery.data?.total ?? 0;
   const alertBadge = `Open queue: ${openQueueCount}`;
   const actionLabel =
-    pathname.startsWith("/alerts") || pathname.startsWith("/investigations")
+    pathname.startsWith("/alerts") ||
+    pathname.startsWith("/investigations") ||
+    pathname.startsWith("/overview")
       ? `New Investigation (${highSeverityCount} high)`
       : "New Investigation";
+
+  const showQueueBadge =
+    pathname.startsWith("/alerts") || pathname.startsWith("/overview");
 
   return (
     <AppShell
       title={topbar.title}
-      badge={pathname.startsWith("/alerts") ? alertBadge : topbar.badge}
+      badge={showQueueBadge ? alertBadge : topbar.badge}
       actions={
         <Button variant="primary" type="button">
           {actionLabel}

@@ -18,4 +18,7 @@ export const queryKeys = {
   users: {
     list: (params: Record<string, string | number>) => ["users", params] as const,
   },
+  metrics: {
+    overview: () => ["metrics", "overview"] as const,
+  },
 };
