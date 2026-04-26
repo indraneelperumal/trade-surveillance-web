@@ -30,6 +30,12 @@ export type Alert = {
   topShapFeature?: string | null;
   exchange?: string | null;
   traderId?: string | null;
+  /** ML / scoring lineage (Phase 1 API) */
+  featureSpecVersion?: string | null;
+  modelFeatures?: Record<string, unknown> | null;
+  scoringModelRunId?: string | null;
+  scoredAt?: string | null;
+  scoringMode?: string | null;
 };
 
 export type Investigation = {

@@ -78,5 +78,15 @@ export function normalizeAlert(raw: UnknownRecord): Alert {
     topShapFeature: raw.topShapFeature != null ? asString(raw.topShapFeature) : null,
     exchange: raw.exchange != null ? asString(raw.exchange) : undefined,
     traderId: raw.traderId != null ? asString(raw.traderId) : undefined,
+    featureSpecVersion:
+      raw.featureSpecVersion != null ? asString(raw.featureSpecVersion) : undefined,
+    modelFeatures:
+      raw.modelFeatures != null && typeof raw.modelFeatures === "object"
+        ? (raw.modelFeatures as Record<string, unknown>)
+        : undefined,
+    scoringModelRunId:
+      raw.scoringModelRunId != null ? asString(raw.scoringModelRunId) : undefined,
+    scoredAt: raw.scoredAt != null ? asString(raw.scoredAt) : undefined,
+    scoringMode: raw.scoringMode != null ? asString(raw.scoringMode) : undefined,
   };
 }
