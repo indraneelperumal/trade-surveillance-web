@@ -6,6 +6,8 @@ import { listAlerts, patchAlert } from "@/lib/api/endpoints/alerts";
 import { getInvestigation, listInvestigations } from "@/lib/api/endpoints/investigations";
 import { createNote, listNotes } from "@/lib/api/endpoints/notes";
 import { getTrade } from "@/lib/api/endpoints/trades";
+import { listUsers } from "@/lib/api/endpoints/users";
+import { listModelRuns } from "@/lib/api/endpoints/modelRuns";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { AlertDetailPanel } from "@/features/alerts/components/AlertDetailPanel";
 import { AlertFilters } from "@/features/alerts/components/AlertFilters";
@@ -88,6 +90,14 @@ export function AlertsWorkspace({
       selectedAlert?.tradeId ? getTrade(selectedAlert.tradeId) : Promise.resolve(null),
     enabled: Boolean(selectedAlert?.tradeId),
   });
+  const usersQuery = useQuery({
+    queryKey: queryKeys.users.list({ offset: 0, limit: 50 }),
+    queryFn: () => listUsers({ offset: 0, limit: 50 }),
+  });
+  const modelRunsQuery = useQuery({
+    queryKey: queryKeys.modelRuns.list({ offset: 0, limit: 1 }),
+    queryFn: () => listModelRuns({ offset: 0, limit: 1 }),
+  });
 
   const updateUrl = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -99,6 +109,9 @@ export function AlertsWorkspace({
 
   const mutation = useMutation({
     mutationFn: async ({ alertId, values }: { alertId: string; values: AlertActionValues }) => {
+      const fallbackUser = usersQuery.data?.items.find((user) => user.isActive);
+      const authorName =
+        values.assignee?.trim() || selectedAlert?.assignee?.trim() || fallbackUser?.email || "analyst";
       await patchAlert(alertId, {
         status: values.status,
         assignee: values.assignee || null,
@@ -106,7 +119,7 @@ export function AlertsWorkspace({
       await createNote({
         alertId,
         body: values.note,
-        authorName: "Current User",
+        authorName,
         noteType: "human",
       });
     },
@@ -120,6 +133,20 @@ export function AlertsWorkspace({
   const openCount = alerts.filter((item) => item.status === "open").length;
   const inProgressCount = alerts.filter((item) => item.status === "in-progress").length;
   const highCount = alerts.filter((item) => item.severity === "high").length;
+  const closedDurationsHours = alerts
+    .filter((item) => item.status === "closed")
+    .map((item) => {
+      const created = Date.parse(item.createdAt);
+      const updated = Date.parse(item.updatedAt);
+      if (Number.isNaN(created) || Number.isNaN(updated) || updated < created) return null;
+      return (updated - created) / (1000 * 60 * 60);
+    })
+    .filter((value): value is number => value !== null);
+  const avgResolutionHours =
+    closedDurationsHours.length > 0
+      ? closedDurationsHours.reduce((sum, hours) => sum + hours, 0) / closedDurationsHours.length
+      : null;
+  const latestModelPrecision = modelRunsQuery.data?.items[0]?.precision ?? null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -133,6 +160,8 @@ export function AlertsWorkspace({
         openCount={openCount}
         inProgressCount={inProgressCount}
         highCount={highCount}
+        avgResolutionHours={avgResolutionHours}
+        modelPrecision={latestModelPrecision}
       />
       <div className="grid grid-cols-[1fr_300px] gap-4">
         <Panel>

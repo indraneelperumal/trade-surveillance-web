@@ -7,6 +7,26 @@ type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined | null>;
 };
 
+function toCamelCaseKey(key: string) {
+  return key.replace(/_([a-z])/g, (_, char: string) => char.toUpperCase());
+}
+
+function camelizeValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => camelizeValue(item));
+  }
+  if (value && typeof value === "object" && value.constructor === Object) {
+    return Object.entries(value as Record<string, unknown>).reduce<Record<string, unknown>>(
+      (acc, [key, nestedValue]) => {
+        acc[toCamelCaseKey(key)] = camelizeValue(nestedValue);
+        return acc;
+      },
+      {},
+    );
+  }
+  return value;
+}
+
 function withQuery(
   path: string,
   query?: Record<string, string | number | undefined | null>,
@@ -74,5 +94,6 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}) {
     return null as T;
   }
 
-  return (await response.json()) as T;
+  const data = await response.json();
+  return camelizeValue(data) as T;
 }

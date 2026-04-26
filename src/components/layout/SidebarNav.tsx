@@ -1,6 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { listAlerts } from "@/lib/api/endpoints/alerts";
+import { queryKeys } from "@/lib/api/queryKeys";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,7 +15,7 @@ type NavItem = {
 
 const primaryItems: NavItem[] = [
   { label: "Overview", href: "/overview" },
-  { label: "Alerts", href: "/alerts", badge: "12" },
+  { label: "Alerts", href: "/alerts" },
   { label: "Investigations", href: "/investigations" },
   { label: "Model Runs", href: "/model-runs" },
 ];
@@ -44,13 +47,24 @@ function NavLink({ item }: { item: NavItem }) {
 }
 
 export function SidebarNav() {
+  const openAlertsQuery = useQuery({
+    queryKey: queryKeys.alerts.list({ status: "open", offset: 0, limit: 1 }),
+    queryFn: () => listAlerts({ status: "open", offset: 0, limit: 1 }),
+  });
+  const openAlertCount = openAlertsQuery.data?.total ?? 0;
+  const navItems = primaryItems.map((item) =>
+    item.href === "/alerts"
+      ? { ...item, badge: openAlertCount > 0 ? String(openAlertCount) : undefined }
+      : item,
+  );
+
   return (
     <aside className="flex h-full w-[200px] shrink-0 flex-col border-r border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)] py-4">
       <div className="px-4 pb-5 text-[13px] font-medium tracking-[0.08em] text-[var(--color-text-secondary)] uppercase">
         Sentinel
       </div>
       <nav className="flex flex-col">
-        {primaryItems.map((item) => (
+        {navItems.map((item) => (
           <NavLink key={item.href} item={item} />
         ))}
       </nav>
