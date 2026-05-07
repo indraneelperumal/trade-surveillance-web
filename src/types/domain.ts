@@ -42,7 +42,8 @@ export type Investigation = {
   id: string;
   alertId: string;
   verdict?: string | null;
-  confidence?: number | null;
+  // API returns "HIGH" | "MEDIUM" | "LOW" string, not a float
+  confidence?: string | null;
   summary?: string | null;
   evidencePoints?: string[] | null;
   recommendedAction?: string | null;
@@ -54,21 +55,30 @@ export type InvestigationNote = {
   id: string;
   alertId: string;
   investigationId?: string | null;
-  authorName: string;
+  // API returns author_id (UUID) → camelized authorId; no authorName field
+  authorId?: string | null;
   noteType: "system" | "human";
-  body: string;
+  isSystem?: boolean;
+  // API field is "content" (not "body")
+  content: string;
   createdAt: string;
 };
 
 export type ModelRun = {
   id: string;
-  status: "success" | "failed" | "running";
+  // API values: "COMPLETED" | "STARTED" | "FAILED"
+  status: string;
+  modelName?: string | null;
+  runType?: string | null;
   precision?: number | null;
   recall?: number | null;
   flaggedCount?: number | null;
   totalRecords?: number | null;
-  runtimeMs?: number | null;
-  failureReason?: string | null;
+  // API field is runtimeSeconds (not runtimeMs)
+  runtimeSeconds?: number | null;
+  // API field is errorMessage (not failureReason)
+  errorMessage?: string | null;
+  startedAt?: string | null;
   createdAt: string;
 };
 

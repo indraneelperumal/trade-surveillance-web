@@ -15,7 +15,7 @@ export function NotesTimeline({ notes }: { notes: InvestigationNote[] }) {
           className="border-b border-[var(--color-border-tertiary)] px-4 py-2.5 last:border-b-0"
         >
           <div className="mb-1 flex items-center gap-1.5">
-            <span className="text-[11px] font-medium">{note.authorName}</span>
+            <span className="text-[11px] font-medium">{note.authorId ?? "Analyst"}</span>
             <span className="text-[11px] text-[var(--color-text-secondary)]">
               {formatRelativeDate(note.createdAt)}
             </span>
@@ -23,7 +23,7 @@ export function NotesTimeline({ notes }: { notes: InvestigationNote[] }) {
               {note.noteType === "system" ? "system" : "analyst"}
             </Badge>
           </div>
-          <p className="text-[12px] leading-5 text-[var(--color-text-secondary)]">{note.body}</p>
+          <p className="text-[12px] leading-5 text-[var(--color-text-secondary)]">{note.content}</p>
         </article>
       ))}
     </div>

@@ -24,9 +24,7 @@ export function InvestigationSummary({
       <div className="flex justify-between">
         <span className="text-[var(--color-text-secondary)]">Confidence</span>
         <span className="font-medium">
-          {typeof investigation.confidence === "number"
-            ? `${Math.round(investigation.confidence * 100)}%`
-            : "-"}
+          {investigation.confidence ?? "-"}
         </span>
       </div>
       <p className="mt-2 leading-5 text-[var(--color-text-secondary)]">

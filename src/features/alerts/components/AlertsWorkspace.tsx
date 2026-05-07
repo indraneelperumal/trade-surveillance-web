@@ -109,18 +109,14 @@ export function AlertsWorkspace({
 
   const mutation = useMutation({
     mutationFn: async ({ alertId, values }: { alertId: string; values: AlertActionValues }) => {
-      const fallbackUser = usersQuery.data?.items.find((user) => user.isActive);
-      const authorName =
-        values.assignee?.trim() || selectedAlert?.assignee?.trim() || fallbackUser?.email || "analyst";
       await patchAlert(alertId, {
         status: values.status,
         assignee: values.assignee || null,
       });
       await createNote({
-        alertId,
-        body: values.note,
-        authorName,
-        noteType: "human",
+        alert_id: alertId,
+        content: values.note,
+        note_type: "human",
       });
     },
     onSuccess: () => {

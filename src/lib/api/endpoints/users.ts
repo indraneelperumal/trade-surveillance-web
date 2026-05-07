@@ -6,9 +6,19 @@ export function listUsers(query: ListQuery) {
   return apiFetch<PaginatedResponse<User>>("/api/v1/users", { query });
 }
 
+// Request body uses snake_case — the API client does not convert request keys.
+type UserUpdatePayload = {
+  is_active?: boolean;
+  role?: string;
+};
+
 export function patchUser(userId: string, payload: Partial<User>) {
+  const body: UserUpdatePayload = {};
+  if (payload.isActive !== undefined) body.is_active = payload.isActive;
+  if (payload.role !== undefined) body.role = payload.role;
+
   return apiFetch<User>(`/api/v1/users/${userId}`, {
     method: "PATCH",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }

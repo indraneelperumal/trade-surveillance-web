@@ -59,6 +59,16 @@ export default async function ModelRunsPage() {
           </div>
           <div className="text-lg font-medium">{latest?.flaggedCount ?? "-"}</div>
         </Card>
+        <Card className="p-4">
+          <div className="mb-1 text-[11px] text-[var(--color-text-secondary)] uppercase">
+            Runtime
+          </div>
+          <div className="text-lg font-medium">
+            {typeof latest?.runtimeSeconds === "number"
+              ? `${latest.runtimeSeconds.toFixed(1)}s`
+              : "-"}
+          </div>
+        </Card>
       </div>
       <Panel>
         <PanelHead title="Recent model runs" />
@@ -76,9 +86,9 @@ export default async function ModelRunsPage() {
                 className="h-1.5 w-1.5 rounded-full"
                 style={{
                   background:
-                    run.status === "success"
+                    run.status === "COMPLETED"
                       ? "#3B6D11"
-                      : run.status === "running"
+                      : run.status === "STARTED"
                         ? "#185FA5"
                         : "#A32D2D",
                 }}
