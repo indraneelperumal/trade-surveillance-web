@@ -11,6 +11,8 @@ type AlertDetailPanelProps = {
   trade?: Trade | null;
   investigation?: Investigation | null;
   notes: InvestigationNote[];
+  isRunning?: boolean;
+  onRunInvestigation?: () => void;
   onSubmitAction: (values: AlertActionValues) => void;
 };
 
@@ -19,6 +21,8 @@ export function AlertDetailPanel({
   trade,
   investigation,
   notes,
+  isRunning = false,
+  onRunInvestigation,
   onSubmitAction,
 }: AlertDetailPanelProps) {
   if (!alert) {
@@ -28,6 +32,12 @@ export function AlertDetailPanel({
       </div>
     );
   }
+
+  const canTrigger =
+    !investigation &&
+    !isRunning &&
+    (alert.severity === "high" || alert.severity === "med") &&
+    alert.status !== "closed";
 
   return (
     <div className="flex flex-col">
@@ -54,24 +64,44 @@ export function AlertDetailPanel({
           </div>
         </div>
       </section>
+
       <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
         <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
           Trade snapshot
         </div>
         <TradeSnapshot trade={trade} alert={alert} />
       </section>
+
       <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
-        <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
-          Investigation
+        {/* Section header with trigger button */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
+            Investigation
+          </div>
+          {isRunning ? (
+            <span className="flex items-center gap-1.5 text-[11px] text-[var(--color-text-secondary)]">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-accent-default)]" />
+              Agent running…
+            </span>
+          ) : canTrigger ? (
+            <button
+              onClick={onRunInvestigation}
+              className="rounded-[5px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2.5 py-1 text-[11px] font-medium hover:bg-[var(--color-background-secondary)] transition-colors"
+            >
+              Run investigation
+            </button>
+          ) : null}
         </div>
         <InvestigationSummary investigation={investigation} />
       </section>
+
       <section className="border-b border-[var(--color-border-tertiary)] py-3">
         <div className="mb-2 px-4 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
           Notes · {notes.length}
         </div>
         <NotesTimeline notes={notes} />
       </section>
+
       <AlertActionsForm onSubmit={onSubmitAction} />
     </div>
   );

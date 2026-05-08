@@ -32,3 +32,10 @@ export function patchInvestigation(
     body: JSON.stringify(payload),
   });
 }
+
+export function triggerInvestigation(alertId: string) {
+  return apiFetch<{ status: string; alert_id: string; severity: string }>(
+    `/api/v1/investigations/run/${alertId}`,
+    { method: "POST" },
+  );
+}

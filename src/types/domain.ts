@@ -42,12 +42,17 @@ export type Investigation = {
   id: string;
   alertId: string;
   verdict?: string | null;
-  // API returns "HIGH" | "MEDIUM" | "LOW" string, not a float
   confidence?: string | null;
+  ruleViolated?: string | null;
   summary?: string | null;
   evidencePoints?: string[] | null;
   recommendedAction?: string | null;
   dataGaps?: string | null;
+  modelVersion?: string | null;
+  errorMessage?: string | null;
+  isAuto?: boolean | null;
+  startedAt?: string | null;
+  createdAt?: string | null;
   updatedAt: string;
 };
 
