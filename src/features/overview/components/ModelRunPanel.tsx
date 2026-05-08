@@ -56,7 +56,7 @@ export function ModelRunPanel({ runs }: Props) {
               <div className="flex justify-between gap-2">
                 <span className="text-[var(--color-text-secondary)]">Runtime</span>
                 <span>
-                  {typeof latest.runtimeMs === "number" ? `${(latest.runtimeMs / 1000).toFixed(1)}s` : "—"}
+                  {typeof latest.runtimeSeconds === "number" ? `${latest.runtimeSeconds.toFixed(1)}s` : "—"}
                 </span>
               </div>
             </div>
