@@ -12,6 +12,8 @@ export type OverviewDashboardProps = {
   modelRuns: ModelRun[];
   recentTrades: Trade[];
   recentAlerts: Alert[];
+  isLoading?: boolean;
+  isError?: boolean;
 };
 
 export function OverviewDashboard({
@@ -19,14 +21,23 @@ export function OverviewDashboard({
   modelRuns,
   recentTrades,
   recentAlerts,
+  isLoading = false,
+  isError = false,
 }: OverviewDashboardProps) {
-  const empty =
-    !metrics && modelRuns.length === 0 && recentTrades.length === 0 && recentAlerts.length === 0;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6 animate-pulse">
+        <div className="h-24 rounded-[10px] bg-[var(--color-background-secondary)]" />
+        <div className="h-32 rounded-[10px] bg-[var(--color-background-secondary)]" />
+        <div className="h-48 rounded-[10px] bg-[var(--color-background-secondary)]" />
+      </div>
+    );
+  }
 
-  if (empty) {
+  if (isError) {
     return (
       <div className="rounded-[10px] border border-[#F4C7C7] bg-[#FCEBEB] px-4 py-3 text-[12px] text-[#A32D2D]">
-        Backend unavailable. Overview data cannot be loaded right now.
+        Overview data unavailable. Check backend connection.
       </div>
     );
   }
