@@ -40,6 +40,27 @@ function withQuery(
   return q.length > 0 ? `${path}?${q}` : path;
 }
 
+/**
+ * Module-level token store populated by AuthContext on session changes.
+ * Only runs in the browser — SSR pages call the API without a token and
+ * handle 401 gracefully (try/catch → empty/error state).
+ * TanStack Query on the client re-fetches with the token once auth is ready.
+ */
+let _authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  _authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return _authToken;
+}
+
+function resolveToken(): string | null {
+  if (typeof window === "undefined") return null; // server — no module state
+  return _authToken;
+}
+
 export class ApiError extends Error {
   code: string;
   details: unknown;
@@ -55,12 +76,15 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}) {
   const { query, headers, ...init } = options;
+  const token = resolveToken();
+
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${withQuery(path, query)}`, {
       ...init,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       cache: "no-store",

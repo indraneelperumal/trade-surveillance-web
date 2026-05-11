@@ -90,7 +90,8 @@ export type ModelRun = {
 export type User = {
   id: string;
   email: string;
-  role: "analyst" | "lead" | "admin";
+  // API returns "ANALYST" | "COMPLIANCE_LEAD" (uppercase, as stored in DB)
+  role: string;
   isActive: boolean;
   updatedAt: string;
 };

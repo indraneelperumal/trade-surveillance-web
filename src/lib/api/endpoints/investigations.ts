@@ -16,12 +16,9 @@ export function getInvestigation(investigationId: string) {
   return apiFetch<Investigation>(`/api/v1/investigations/${investigationId}`);
 }
 
-export function createInvestigation(payload: Partial<Investigation>) {
-  return apiFetch<Investigation>("/api/v1/investigations", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
+// NOTE: createInvestigation and patchInvestigation are not wired to any UI yet.
+// The API expects snake_case field names (alert_id, evidence_points, etc.).
+// Do not use these until the payload is converted to snake_case first.
 
 export function patchInvestigation(
   investigationId: string,
