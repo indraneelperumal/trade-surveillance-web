@@ -2,26 +2,51 @@
 
 import { Button } from "@/components/ui/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-const schema = z.object({
-  status: z.enum(["open", "in-progress", "closed"]).optional(),
-  assignee: z.string().optional(),
-  note: z.string().min(3, "Note should be at least 3 characters"),
-});
+const DISPOSITIONS = [
+  { value: "FALSE_POSITIVE", label: "False positive" },
+  { value: "NO_ACTION", label: "No action required" },
+  { value: "UNDER_INVESTIGATION", label: "Under investigation" },
+  { value: "ESCALATED_TO_REGULATOR", label: "Escalated to regulator" },
+] as const;
+
+const schema = z
+  .object({
+    status: z.enum(["open", "in-progress", "closed"]).optional(),
+    disposition: z.string().optional(),
+    assignee: z.string().optional(),
+    note: z.string().min(3, "Note should be at least 3 characters"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.status === "closed" && !data.disposition) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["disposition"],
+        message: "Disposition is required when closing an alert.",
+      });
+    }
+  });
 
 export type AlertActionValues = z.infer<typeof schema>;
 
 export function AlertActionsForm({
   onSubmit,
+  appRole,
 }: {
   onSubmit: (values: AlertActionValues) => void;
+  appRole?: string | null;
 }) {
+  const isComplianceLead = appRole === "COMPLIANCE_LEAD";
+
   const form = useForm<AlertActionValues>({
     resolver: zodResolver(schema),
-    defaultValues: { status: "open", assignee: "", note: "" },
+    defaultValues: { status: "open", disposition: "", assignee: "", note: "" },
   });
+
+  const watchedStatus = useWatch({ control: form.control, name: "status" });
+  const isClosing = watchedStatus === "closed";
 
   return (
     <form
@@ -31,14 +56,43 @@ export function AlertActionsForm({
       <div className="mb-1 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
         Actions
       </div>
+
       <select
         className="rounded-[6px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2 py-1.5 text-[12px]"
         {...form.register("status")}
       >
         <option value="open">Open</option>
         <option value="in-progress">In progress</option>
-        <option value="closed">Closed</option>
+        {isComplianceLead && <option value="closed">Closed</option>}
       </select>
+
+      {!isComplianceLead && (
+        <p className="text-[11px] text-[var(--color-text-secondary)]">
+          Closing alerts requires Compliance Lead access.
+        </p>
+      )}
+
+      {isComplianceLead && isClosing && (
+        <div className="flex flex-col gap-1">
+          <select
+            className="rounded-[6px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2 py-1.5 text-[12px]"
+            {...form.register("disposition")}
+          >
+            <option value="">Select disposition…</option>
+            {DISPOSITIONS.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+          {form.formState.errors.disposition && (
+            <p className="text-[11px] text-[#A32D2D]">
+              {form.formState.errors.disposition.message}
+            </p>
+          )}
+        </div>
+      )}
+
       <input
         placeholder="Assign to..."
         className="rounded-[6px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2 py-1.5 text-[12px]"

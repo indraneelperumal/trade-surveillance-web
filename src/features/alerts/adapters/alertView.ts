@@ -13,13 +13,15 @@ export function severityVariant(value: Severity) {
 }
 
 export function statusLabel(value: AlertStatus) {
-  if (value === "in-progress") return "In progress";
   if (value === "open") return "Open";
+  if (value === "in-progress") return "In progress";
+  if (value === "escalated") return "Escalated";
   return "Closed";
 }
 
 export function statusVariant(value: AlertStatus) {
   if (value === "open") return "status-open";
   if (value === "in-progress") return "status-prog";
+  if (value === "escalated") return "status-closed";
   return "status-closed";
 }

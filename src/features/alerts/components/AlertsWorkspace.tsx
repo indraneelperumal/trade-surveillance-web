@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Panel, PanelHead } from "@/components/ui/Panel";
+import { ApiError } from "@/lib/api/client";
 import { listAlerts, patchAlert } from "@/lib/api/endpoints/alerts";
 import {
   getInvestigation,
@@ -19,6 +20,7 @@ import { AlertFilters } from "@/features/alerts/components/AlertFilters";
 import { AlertMetricRow } from "@/features/alerts/components/AlertMetricRow";
 import { AlertQueueTable } from "@/features/alerts/components/AlertQueueTable";
 import { AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
+import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -49,6 +51,7 @@ export function AlertsWorkspace({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { appRole } = useAuth();
 
   const tab = (searchParams.get("tab") as Tab) ?? "all";
   const status = searchParams.get("status") ?? initialStatus;
@@ -167,6 +170,7 @@ export function AlertsWorkspace({
       await patchAlert(alertId, {
         status: values.status,
         assignee: values.assignee || null,
+        ...(values.disposition ? { disposition: values.disposition } : {}),
       });
       await createNote({
         alert_id: alertId,
@@ -329,6 +333,7 @@ export function AlertsWorkspace({
               investigation={investigationDetailQuery.data}
               notes={notesQuery.data?.items ?? []}
               isRunning={isRunning}
+              appRole={appRole}
               onRunInvestigation={() => {
                 if (selectedAlert) triggerMutation.mutate(selectedAlert.id);
               }}
@@ -344,7 +349,13 @@ export function AlertsWorkspace({
             )}
             {actionMutation.isError && (
               <div className="px-4 py-2 text-[11px] text-[#A32D2D]">
-                Failed to save alert updates.
+                {actionMutation.error instanceof ApiError &&
+                actionMutation.error.status === 403
+                  ? "You are not authorised to perform this action. Contact your Compliance Lead."
+                  : actionMutation.error instanceof ApiError &&
+                      actionMutation.error.status === 422
+                    ? (actionMutation.error.message ?? "Invalid action. Check all required fields.")
+                    : "Failed to save alert updates."}
               </div>
             )}
             {triggerMutation.isError && (

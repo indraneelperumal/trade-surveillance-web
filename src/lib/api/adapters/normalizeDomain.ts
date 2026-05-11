@@ -30,6 +30,7 @@ export function normalizeStatus(raw: unknown): AlertStatus {
   if (s === "open") return "open";
   if (s === "in_progress" || s === "inprogress") return "in-progress";
   if (s === "closed") return "closed";
+  if (s === "escalated") return "escalated";
   return "open";
 }
 

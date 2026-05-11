@@ -14,6 +14,7 @@ type AlertDetailPanelProps = {
   isRunning?: boolean;
   onRunInvestigation?: () => void;
   onSubmitAction: (values: AlertActionValues) => void;
+  appRole?: string | null;
 };
 
 export function AlertDetailPanel({
@@ -24,6 +25,7 @@ export function AlertDetailPanel({
   isRunning = false,
   onRunInvestigation,
   onSubmitAction,
+  appRole,
 }: AlertDetailPanelProps) {
   if (!alert) {
     return (
@@ -102,7 +104,7 @@ export function AlertDetailPanel({
         <NotesTimeline notes={notes} />
       </section>
 
-      <AlertActionsForm onSubmit={onSubmitAction} />
+      <AlertActionsForm onSubmit={onSubmitAction} appRole={appRole} />
     </div>
   );
 }
