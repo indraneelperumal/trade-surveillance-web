@@ -1,10 +1,19 @@
+"use client";
+
 import { Badge } from "@/components/ui/Badge";
-import { severityLabel, severityVariant, statusLabel, statusVariant } from "@/features/alerts/adapters/alertView";
+import {
+  severityLabel,
+  severityVariant,
+  statusLabel,
+  statusVariant,
+} from "@/features/alerts/adapters/alertView";
 import { AlertActionsForm, type AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
 import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
 import { NotesTimeline } from "@/features/alerts/components/NotesTimeline";
 import { TradeSnapshot } from "@/features/alerts/components/TradeSnapshot";
 import type { Alert, Investigation, InvestigationNote, Trade } from "@/types/domain";
+import { Bot, Sparkles, X } from "lucide-react";
+import React from "react";
 
 type AlertDetailPanelProps = {
   alert?: Alert;
@@ -14,8 +23,28 @@ type AlertDetailPanelProps = {
   isRunning?: boolean;
   onRunInvestigation?: () => void;
   onSubmitAction: (values: AlertActionValues) => void;
+  onClose?: () => void;
   appRole?: string | null;
 };
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: "0.08em",
+      textTransform: "uppercase",
+      color: "var(--color-text-tertiary)",
+      marginBottom: 10,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ height: 1, background: "var(--color-border-tertiary)", margin: "0 -1px" }} />;
+}
 
 export function AlertDetailPanel({
   alert,
@@ -25,86 +54,213 @@ export function AlertDetailPanel({
   isRunning = false,
   onRunInvestigation,
   onSubmitAction,
+  onClose,
   appRole,
 }: AlertDetailPanelProps) {
   if (!alert) {
     return (
-      <div className="p-6 text-center text-[12px] text-[var(--color-text-secondary)]">
-        Click a row to inspect the alert, linked trade, and investigation notes.
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        gap: 10,
+        color: "var(--color-text-tertiary)",
+        padding: 32,
+        textAlign: "center",
+      }}>
+        <Bot size={32} strokeWidth={1.2} />
+        <div style={{ fontSize: 13, fontWeight: 500 }}>Select an alert to inspect</div>
+        <div style={{ fontSize: 12 }}>
+          Click any row in the queue to load the trade detail and run an AI investigation.
+        </div>
       </div>
     );
   }
 
-  const canTrigger =
-    !investigation &&
-    !isRunning &&
-    (alert.severity === "high" || alert.severity === "med") &&
-    alert.status !== "closed";
+  const svVariant = severityVariant(alert.severity);
+  const canTrigger = !investigation && !isRunning && alert.status !== "closed" &&
+    (alert.severity === "high" || alert.severity === "med");
 
   return (
-    <div className="flex flex-col">
-      <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
-        <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
-          Alert metadata
-        </div>
-        <div className="space-y-2 text-[12px]">
-          <div className="flex justify-between">
-            <span className="text-[var(--color-text-secondary)]">Type</span>
-            <span className="font-medium">{alert.anomalyType}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--color-text-secondary)]">Severity</span>
-            <Badge variant={severityVariant(alert.severity)}>{severityLabel(alert.severity)}</Badge>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--color-text-secondary)]">Status</span>
-            <Badge variant={statusVariant(alert.status)}>{statusLabel(alert.status)}</Badge>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--color-text-secondary)]">Assignee</span>
-            <span className="font-medium">{alert.assignee ?? "Unassigned"}</span>
-          </div>
-        </div>
-      </section>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
 
-      <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
-        <div className="mb-2 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
-          Trade snapshot
-        </div>
-        <TradeSnapshot trade={trade} alert={alert} />
-      </section>
-
-      <section className="border-b border-[var(--color-border-tertiary)] px-4 py-3">
-        {/* Section header with trigger button */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className="text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
-            Investigation
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div style={{
+        padding: "14px 16px 12px",
+        borderBottom: "1px solid var(--color-border-tertiary)",
+        background: "var(--color-background-primary)",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>{alert.symbol}</div>
+            <div className="mono" style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 2 }}>
+              {alert.id.slice(0, 8)}…
+            </div>
           </div>
-          {isRunning ? (
-            <span className="flex items-center gap-1.5 text-[11px] text-[var(--color-text-secondary)]">
-              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-accent-default)]" />
-              Agent running…
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--color-text-tertiary)", padding: 2, borderRadius: 4,
+                display: "flex", alignItems: "center",
+              }}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <Badge variant={severityVariant(alert.severity)}>{severityLabel(alert.severity)}</Badge>
+          <Badge variant={statusVariant(alert.status)}>{statusLabel(alert.status)}</Badge>
+          {alert.anomalyType && (
+            <span style={{
+              fontSize: 11, padding: "2px 7px", borderRadius: 4, fontWeight: 500,
+              background: "var(--color-background-secondary)",
+              color: "var(--color-text-secondary)",
+              border: "1px solid var(--color-border-tertiary)",
+              textTransform: "capitalize",
+            }}>
+              {alert.anomalyType.replace(/_/g, " ")}
             </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Scrollable content ─────────────────────────────────────────────── */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+
+        {/* ── AI Investigation CTA ─────────────────────────────────────────── */}
+        <div style={{ padding: "14px 16px 0" }}>
+          {isRunning ? (
+            <div
+              className="agent-running"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 9, padding: "12px 16px", borderRadius: 8,
+                background: "#0f172a", border: "1px solid #1d4ed8",
+                color: "#93c5fd", fontSize: 13, fontWeight: 600,
+              }}
+            >
+              <Bot size={15} />
+              Agent running…
+            </div>
+          ) : investigation ? (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",
+              borderRadius: 8, background: "var(--color-background-secondary)",
+              border: "1px solid var(--color-border-secondary)",
+              fontSize: 12, color: "var(--color-text-secondary)",
+            }}>
+              <Sparkles size={13} style={{ color: "var(--color-accent-default)", flexShrink: 0 }} />
+              <span style={{ flex: 1 }}>Investigation complete — see results below</span>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
+                background: investigation.verdict === "ESCALATE" ? "var(--sev-high-bg)" :
+                            investigation.verdict === "MONITOR" ? "var(--sev-med-bg)" : "var(--status-closed-bg)",
+                color: investigation.verdict === "ESCALATE" ? "var(--sev-high-text)" :
+                       investigation.verdict === "MONITOR" ? "var(--sev-med-text)" : "var(--status-closed-text)",
+              }}>
+                {investigation.verdict ?? "—"}
+              </span>
+            </div>
           ) : canTrigger ? (
             <button
               onClick={onRunInvestigation}
-              className="rounded-[5px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2.5 py-1 text-[11px] font-medium hover:bg-[var(--color-background-secondary)] transition-colors"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 9, width: "100%", padding: "13px 16px",
+                borderRadius: 8, cursor: "pointer",
+                background: "#0f172a",
+                border: "1px solid #334155",
+                color: "#f8fafc",
+                fontSize: 13, fontWeight: 600,
+                letterSpacing: "0.01em",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#3b82f6";
+                (e.currentTarget as HTMLButtonElement).style.background = "#1e293b";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#334155";
+                (e.currentTarget as HTMLButtonElement).style.background = "#0f172a";
+              }}
             >
-              Run investigation
+              <Sparkles size={15} style={{ color: "#818cf8" }} />
+              Run AI Investigation
             </button>
-          ) : null}
+          ) : (
+            <div style={{
+              padding: "10px 14px", borderRadius: 8, fontSize: 12,
+              background: "var(--color-background-secondary)",
+              color: "var(--color-text-tertiary)",
+              border: "1px solid var(--color-border-tertiary)",
+            }}>
+              {alert.status === "closed"
+                ? "Alert is closed — no investigation needed."
+                : "Investigation not available for this severity level."}
+            </div>
+          )}
         </div>
-        <InvestigationSummary investigation={investigation} />
-      </section>
 
-      <section className="border-b border-[var(--color-border-tertiary)] py-3">
-        <div className="mb-2 px-4 text-[11px] tracking-[0.06em] text-[var(--color-text-secondary)] uppercase">
-          Notes · {notes.length}
+        {/* ── Investigation result ─────────────────────────────────────────── */}
+        {investigation && (
+          <>
+            <div style={{ padding: "14px 16px 0" }}>
+              <SectionTitle>Investigation result</SectionTitle>
+              <InvestigationSummary investigation={investigation} />
+            </div>
+            <div style={{ padding: "12px 0 0" }}><Divider /></div>
+          </>
+        )}
+
+        {/* ── Trade snapshot ───────────────────────────────────────────────── */}
+        <div style={{ padding: "14px 16px 0" }}>
+          <SectionTitle>Trade snapshot</SectionTitle>
+          <TradeSnapshot trade={trade} alert={alert} />
         </div>
-        <NotesTimeline notes={notes} />
-      </section>
+        <div style={{ padding: "12px 0 0" }}><Divider /></div>
 
-      <AlertActionsForm onSubmit={onSubmitAction} appRole={appRole} />
+        {/* ── Alert metadata ───────────────────────────────────────────────── */}
+        <div style={{ padding: "14px 16px 0" }}>
+          <SectionTitle>Alert metadata</SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--color-text-secondary)" }}>Assignee</span>
+              <span style={{ fontWeight: 500 }}>{alert.assignee ?? "Unassigned"}</span>
+            </div>
+            {alert.anomalyScore != null && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <span style={{ color: "var(--color-text-secondary)" }}>Anomaly score</span>
+                <span className="mono" style={{ fontWeight: 600, fontSize: 13 }}>
+                  {alert.anomalyScore.toFixed(4)}
+                </span>
+              </div>
+            )}
+            {alert.topShapFeature && (
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ color: "var(--color-text-secondary)" }}>Top SHAP feature</span>
+                <span className="mono" style={{ fontSize: 11 }}>{alert.topShapFeature}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{ padding: "12px 0 0" }}><Divider /></div>
+
+        {/* ── Notes ───────────────────────────────────────────────────────── */}
+        <div style={{ padding: "14px 16px 4px" }}>
+          <SectionTitle>Notes · {notes.length}</SectionTitle>
+          <NotesTimeline notes={notes} />
+        </div>
+        <Divider />
+
+        {/* ── Actions ─────────────────────────────────────────────────────── */}
+        <AlertActionsForm onSubmit={onSubmitAction} appRole={appRole} />
+      </div>
     </div>
   );
 }

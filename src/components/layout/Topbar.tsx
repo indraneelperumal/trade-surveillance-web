@@ -6,15 +6,28 @@ type TopbarProps = {
   actions?: ReactNode;
 };
 
-export function Topbar({ title, badge, actions }: TopbarProps) {
+export function Topbar({ title, actions }: TopbarProps) {
   return (
-    <header className="flex items-center gap-3 border-b border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)] px-5 py-3">
-      <h1 className="flex-1 text-[15px] font-medium">{title}</h1>
-      {badge ? (
-        <span className="rounded bg-[#E6F1FB] px-2 py-[3px] text-[11px] font-medium text-[#185FA5]">
-          {badge}
-        </span>
-      ) : null}
+    <header style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      padding: "0 20px",
+      height: 52,
+      borderBottom: "1px solid var(--color-border-tertiary)",
+      background: "var(--color-background-primary)",
+      flexShrink: 0,
+    }}>
+      <h1 style={{
+        flex: 1,
+        fontSize: 14,
+        fontWeight: 600,
+        margin: 0,
+        color: "var(--color-text-primary)",
+        letterSpacing: "0.01em",
+      }}>
+        {title}
+      </h1>
       {actions}
     </header>
   );
