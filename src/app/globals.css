@@ -170,3 +170,17 @@ a { color: inherit; text-decoration: none; }
   to   { transform: translateX(0);    opacity: 1; }
 }
 .drawer-enter { animation: slide-in-right 0.22s ease-out forwards; }
+
+/* ── Market ticker ───────────────────────────────────────────────────────── */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: ticker-scroll 50s linear infinite;
+  will-change: transform;
+}
+.ticker-track:hover { animation-play-state: paused; }
