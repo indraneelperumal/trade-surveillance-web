@@ -7,7 +7,6 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Activity,
   AlertTriangle,
   FileSearch,
   LayoutDashboard,
@@ -28,7 +27,6 @@ const primaryItems: NavItem[] = [
   { label: "Overview",       href: "/overview",       icon: LayoutDashboard },
   { label: "Alerts",         href: "/alerts",          icon: AlertTriangle   },
   { label: "Investigations", href: "/investigations",  icon: FileSearch      },
-  { label: "Model Runs",     href: "/model-runs",      icon: Activity        },
 ];
 
 const secondaryItems: NavItem[] = [

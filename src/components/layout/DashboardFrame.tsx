@@ -12,7 +12,6 @@ const topbarByPath: Record<string, { title: string }> = {
   "/overview":       { title: "Overview" },
   "/alerts":         { title: "Alerts" },
   "/investigations": { title: "Investigations" },
-  "/model-runs":     { title: "Model Runs" },
   "/users":          { title: "Users" },
 };
 
