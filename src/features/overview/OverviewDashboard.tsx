@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { OverviewMetrics } from "@/lib/api/endpoints/metrics";
 import { AnomalyDonut } from "@/features/overview/components/AnomalyDonut";
 import { DistributionStrip } from "@/features/overview/components/DistributionStrip";
@@ -17,7 +18,7 @@ export type OverviewDashboardProps = {
   isError?: boolean;
 };
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({ children }: { children: ReactNode }) {
   return (
     <h2 style={{
       fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
@@ -73,13 +74,7 @@ export function OverviewDashboard({
       {/* ── Detection pipeline ────────────────────────────────────────────── */}
       <section>
         <SectionHeading>Detection pipeline</SectionHeading>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 16,
-        }}
-          className="lg:!grid-cols-[3fr_2fr]"
-        >
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
           {metrics ? (
             <AnomalyDonut alertsByAnomalyType={metrics.alertsByAnomalyType} />
           ) : (
@@ -103,14 +98,7 @@ export function OverviewDashboard({
       {/* ── Activity ──────────────────────────────────────────────────────── */}
       <section>
         <SectionHeading>Activity</SectionHeading>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 16,
-          marginBottom: 16,
-        }}
-          className="lg:!grid-cols-[3fr_2fr]"
-        >
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] mb-4">
           <RecentAlerts alerts={recentAlerts} />
           {metrics && <TopSymbols rows={metrics.topSymbolsByAlerts} />}
         </div>

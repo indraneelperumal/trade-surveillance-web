@@ -77,7 +77,7 @@ export function ModelHealthCard({ run }: Props) {
                         : "#f59e0b",
             }} />
             <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
-              {run.modelName ?? run.scoringMode ?? "IsolationForest"}
+              {run.modelName ?? run.runType ?? "IsolationForest"}
             </span>
             <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--color-text-tertiary)" }}>
               {formatRelativeDate(run.createdAt)}

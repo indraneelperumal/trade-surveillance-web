@@ -34,7 +34,7 @@ export type Alert = {
   traderId?: string | null;
   /** ML / scoring lineage (Phase 1 API) */
   featureSpecVersion?: string | null;
-  modelFeatures?: Record<string, number> | null;
+  modelFeatures?: Record<string, unknown> | null;
   scoringModelRunId?: string | null;
   scoredAt?: string | null;
   scoringMode?: string | null;
