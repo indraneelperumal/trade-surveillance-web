@@ -10,6 +10,7 @@ import {
 import { AlertActionsForm, type AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
 import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
 import { NotesTimeline } from "@/features/alerts/components/NotesTimeline";
+import { ShapFeatureBar } from "@/features/alerts/components/ShapFeatureBar";
 import { TradeSnapshot } from "@/features/alerts/components/TradeSnapshot";
 import type { Alert, Investigation, InvestigationNote, Trade } from "@/types/domain";
 import { Bot, Sparkles, X } from "lucide-react";
@@ -225,28 +226,39 @@ export function AlertDetailPanel({
         </div>
         <div style={{ padding: "12px 0 0" }}><Divider /></div>
 
-        {/* ── Alert metadata ───────────────────────────────────────────────── */}
+        {/* ── ML signal ───────────────────────────────────────────────────── */}
         <div style={{ padding: "14px 16px 0" }}>
-          <SectionTitle>Alert metadata</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--color-text-secondary)" }}>Assignee</span>
-              <span style={{ fontWeight: 500 }}>{alert.assignee ?? "Unassigned"}</span>
+          <SectionTitle>ML signal · SHAP explanation</SectionTitle>
+          {alert.top_3ShapFeatures && alert.top_3ShapFeatures.length > 0 ? (
+            <ShapFeatureBar
+              features={alert.top_3ShapFeatures}
+              anomalyScore={alert.anomalyScore}
+            />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12 }}>
+              {alert.anomalyScore != null && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "var(--color-text-secondary)" }}>Anomaly score</span>
+                  <span className="mono" style={{ fontWeight: 600, fontSize: 13 }}>
+                    {alert.anomalyScore.toFixed(4)}
+                  </span>
+                </div>
+              )}
+              {alert.topShapFeature && (
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <span style={{ color: "var(--color-text-secondary)" }}>Top SHAP feature</span>
+                  <span className="mono" style={{ fontSize: 11 }}>{alert.topShapFeature}</span>
+                </div>
+              )}
             </div>
-            {alert.anomalyScore != null && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <span style={{ color: "var(--color-text-secondary)" }}>Anomaly score</span>
-                <span className="mono" style={{ fontWeight: 600, fontSize: 13 }}>
-                  {alert.anomalyScore.toFixed(4)}
-                </span>
-              </div>
-            )}
-            {alert.topShapFeature && (
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                <span style={{ color: "var(--color-text-secondary)" }}>Top SHAP feature</span>
-                <span className="mono" style={{ fontSize: 11 }}>{alert.topShapFeature}</span>
-              </div>
-            )}
+          )}
+        </div>
+
+        {/* ── Assignee ─────────────────────────────────────────────────────── */}
+        <div style={{ padding: "10px 16px 0", fontSize: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--color-text-secondary)" }}>Assignee</span>
+            <span style={{ fontWeight: 500 }}>{alert.assignee ?? "Unassigned"}</span>
           </div>
         </div>
         <div style={{ padding: "12px 0 0" }}><Divider /></div>

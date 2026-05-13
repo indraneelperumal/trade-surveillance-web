@@ -28,11 +28,13 @@ export type Alert = {
   tradeId?: string | null;
   anomalyScore?: number | null;
   topShapFeature?: string | null;
+  /** [[feature_name, shap_value], ...] — top 3 features by |SHAP| from IsolationForest */
+  top_3ShapFeatures?: Array<[string, number]> | null;
   exchange?: string | null;
   traderId?: string | null;
   /** ML / scoring lineage (Phase 1 API) */
   featureSpecVersion?: string | null;
-  modelFeatures?: Record<string, unknown> | null;
+  modelFeatures?: Record<string, number> | null;
   scoringModelRunId?: string | null;
   scoredAt?: string | null;
   scoringMode?: string | null;
