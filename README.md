@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project for the **Trade Surveillance** dashboard. It talks to the **FastAPI** backend only (no direct browser access to Postgres).
 
+**Product & UX spec (v2):** [`trade-surveillance-api/docs/SENTINEL_PRODUCT_SPEC_V2.md`](../trade-surveillance-api/docs/SENTINEL_PRODUCT_SPEC_V2.md) — case-centric workflow, RBAC, screens, and API shapes.
+
 ## Getting Started
 
 ```bash
