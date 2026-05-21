@@ -26,6 +26,8 @@ export type AuthUser = {
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  /** True when a non-empty API access token is in session (required for protected routes). */
+  hasAccessToken: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
@@ -36,6 +38,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   isAuthenticated: false,
+  hasAccessToken: false,
   isLoading: true,
   signIn: async () => {},
   signOut: () => {},
@@ -69,19 +72,27 @@ function persistSession(payload: {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [hasAccessToken, setHasAccessToken] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const updateAccessTokenFlag = useCallback((token: string | null) => {
+    setHasAccessToken(Boolean(token?.trim()));
+  }, []);
 
   const syncSession = useCallback((): boolean => {
     const stored = readSession();
     if (!stored) {
       setAuthToken(null);
       setUser(null);
+      updateAccessTokenFlag(null);
       return false;
     }
-    setAuthToken(stored.accessToken || null);
+    const token = stored.accessToken || null;
+    setAuthToken(token);
     setUser(stored.user);
+    updateAccessTokenFlag(token);
     return true;
-  }, []);
+  }, [updateAccessTokenFlag]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,7 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(stored.user);
-      setAuthToken(stored.accessToken || null);
+      const token = stored.accessToken || null;
+      setAuthToken(token);
+      updateAccessTokenFlag(token);
 
       const now = Math.floor(Date.now() / 1000);
       const needsRefresh =
@@ -116,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!cancelled) {
             setAuthToken(null);
             setUser(null);
+            updateAccessTokenFlag(null);
             setIsLoading(false);
           }
           return;
@@ -140,26 +154,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("focus", onFocus);
     };
-  }, [syncSession]);
+  }, [syncSession, updateAccessTokenFlag]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const result = await apiLogin(email, password);
     const session = persistSession(result);
     setUser(session.user);
-  }, []);
+    updateAccessTokenFlag(session.accessToken);
+  }, [updateAccessTokenFlag]);
 
   const signOut = useCallback(() => {
     clearSession();
     setAuthToken(null);
     setUser(null);
+    updateAccessTokenFlag(null);
     window.location.href = "/login";
-  }, []);
+  }, [updateAccessTokenFlag]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: user !== null,
+        hasAccessToken,
         isLoading,
         signIn,
         signOut,

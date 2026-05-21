@@ -9,8 +9,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OverviewPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const enabled = !authLoading && isAuthenticated;
+  const { hasAccessToken, isLoading: authLoading } = useAuth();
+  const enabled = !authLoading && hasAccessToken;
 
   const metricsQuery = useQuery({
     queryKey: queryKeys.metrics.overview(),

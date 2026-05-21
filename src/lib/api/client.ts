@@ -1,3 +1,4 @@
+import { readSession } from "@/lib/auth/session";
 import type { ApiErrorEnvelope } from "@/types/api";
 
 const API_BASE_URL =
@@ -57,8 +58,15 @@ export function getAuthToken(): string | null {
 }
 
 function resolveToken(): string | null {
-  if (typeof window === "undefined") return null; // server — no module state
-  return _authToken;
+  if (typeof window === "undefined") return null;
+  const cached = _authToken?.trim();
+  if (cached) return cached;
+  const stored = readSession()?.accessToken?.trim();
+  if (stored) {
+    _authToken = stored;
+    return stored;
+  }
+  return null;
 }
 
 export class ApiError extends Error {
