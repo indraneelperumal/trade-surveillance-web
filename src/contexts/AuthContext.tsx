@@ -3,12 +3,20 @@
 import { login as apiLogin, refreshAuth } from "@/lib/api/endpoints/auth";
 import { setAuthToken } from "@/lib/api/client";
 import {
+  AUTH_SESSION_STORAGE_KEY,
   clearSession,
-  loadSession,
+  readSession,
   saveSession,
   type StoredAuthSession,
 } from "@/lib/auth/session";
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type AuthUser = {
   id: string;
@@ -20,7 +28,9 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: () => void;
+  /** Re-read storage; clears state when cookie/storage are out of sync. */
+  syncSession: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -28,8 +38,14 @@ const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
   isLoading: true,
   signIn: async () => {},
-  signOut: async () => {},
+  signOut: () => {},
+  syncSession: () => false,
 });
+
+function applyStoredSession(stored: StoredAuthSession) {
+  setAuthToken(stored.accessToken || null);
+  return stored.user;
+}
 
 function persistSession(payload: {
   accessToken: string;
@@ -55,13 +71,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const syncSession = useCallback((): boolean => {
+    const stored = readSession();
+    if (!stored) {
+      setAuthToken(null);
+      setUser(null);
+      return false;
+    }
+    setAuthToken(stored.accessToken || null);
+    setUser(stored.user);
+    return true;
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
     async function bootstrap() {
-      const stored = loadSession();
+      const stored = readSession();
       if (!stored) {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setAuthToken(null);
+          setUser(null);
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -82,8 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           clearSession();
           if (!cancelled) {
-            setUser(null);
             setAuthToken(null);
+            setUser(null);
             setIsLoading(false);
           }
           return;
@@ -94,10 +126,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     void bootstrap();
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== AUTH_SESSION_STORAGE_KEY) return;
+      syncSession();
+    };
+    const onFocus = () => syncSession();
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", onFocus);
     return () => {
       cancelled = true;
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onFocus);
     };
-  }, []);
+  }, [syncSession]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const result = await apiLogin(email, password);
@@ -105,10 +148,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(session.user);
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(() => {
     clearSession();
     setAuthToken(null);
     setUser(null);
+    window.location.href = "/login";
   }, []);
 
   return (
@@ -119,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         signIn,
         signOut,
+        syncSession,
       }}
     >
       {children}

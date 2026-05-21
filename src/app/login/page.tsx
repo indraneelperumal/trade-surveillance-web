@@ -3,16 +3,24 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    const raw = searchParams.get("redirectTo") ?? "";
+    const redirectTo =
+      raw.startsWith("/") && !raw.startsWith("//") ? raw : "/overview";
+    router.replace(redirectTo);
+  }, [authLoading, isAuthenticated, router, searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

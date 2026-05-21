@@ -91,19 +91,15 @@ function NavLink({ item, badge }: { item: NavItem; badge?: string }) {
 
 export function SidebarNav() {
   const { theme, toggle } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const openAlertsQuery = useQuery({
+    enabled: Boolean(user),
     queryKey: queryKeys.alerts.list({ status: "open", offset: 0, limit: 1 }),
     queryFn: () => listAlerts({ status: "open", offset: 0, limit: 1 }),
   });
   const openAlertCount = openAlertsQuery.data?.total ?? 0;
-
-  async function handleSignOut() {
-    await signOut();
-    router.push("/login");
-  }
 
   return (
     <aside style={{
@@ -189,26 +185,57 @@ export function SidebarNav() {
           <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
         </button>
 
-        {/* User + sign out */}
-        {user?.email && (
+        {/* Account — always show when not loading */}
+        {!authLoading && (
           <div style={{ padding: "8px 14px 0" }}>
-            <div style={{ fontSize: 11, color: "var(--sidebar-text)", marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user?.email ?? "Signed in"}
-            </div>
-            <button
-              onClick={handleSignOut}
-              style={{
-                fontSize: 11,
-                color: "#ef4444",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                fontFamily: "inherit",
-              }}
-            >
-              Sign out
-            </button>
+            {user?.email ? (
+              <>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "var(--sidebar-text)",
+                    marginBottom: 6,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {user.email}
+                </div>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  style={{
+                    fontSize: 11,
+                    color: "#ef4444",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.replace("/login")}
+                style={{
+                  fontSize: 11,
+                  color: "var(--sidebar-text)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  fontFamily: "inherit",
+                  textDecoration: "underline",
+                }}
+              >
+                Sign in
+              </button>
+            )}
           </div>
         )}
       </div>

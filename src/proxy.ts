@@ -17,12 +17,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname === "/login" && hasSession) {
-    const overviewUrl = request.nextUrl.clone();
-    overviewUrl.pathname = "/overview";
-    overviewUrl.search = "";
-    return NextResponse.redirect(overviewUrl);
-  }
+  // Login redirect when cookie present is handled client-side (AuthContext reads
+  // localStorage too) so clearing storage in devtools does not trap the user.
 
   return NextResponse.next({ request });
 }
