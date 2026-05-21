@@ -62,8 +62,26 @@ export function normalizeTrade(raw: UnknownRecord): Trade {
   };
 }
 
+function parseTop3ShapFeatures(raw: unknown): Array<[string, number]> | null {
+  if (!Array.isArray(raw)) return null;
+  const pairs = raw
+    .map((entry) => {
+      if (!Array.isArray(entry) || entry.length < 2) return null;
+      const name = asString(entry[0]);
+      const value = Number(entry[1]);
+      if (!name || !Number.isFinite(value)) return null;
+      return [name, value] as [string, number];
+    })
+    .filter((p): p is [string, number] => p !== null);
+  return pairs.length > 0 ? pairs : null;
+}
+
 export function normalizeAlert(raw: UnknownRecord): Alert {
   const tid = raw.tradeId ?? raw.trade_id;
+  const top3 =
+    parseTop3ShapFeatures(raw.top_3ShapFeatures) ??
+    parseTop3ShapFeatures(raw.top3ShapFeatures) ??
+    parseTop3ShapFeatures(raw.top_3_shap_features);
   return {
     id: asString(raw.id),
     symbol: asString(raw.symbol),
@@ -77,6 +95,7 @@ export function normalizeAlert(raw: UnknownRecord): Alert {
     tradeId: tid ? asString(tid) : null,
     anomalyScore: asNumber(raw.anomalyScore),
     topShapFeature: raw.topShapFeature != null ? asString(raw.topShapFeature) : null,
+    top_3ShapFeatures: top3,
     exchange: raw.exchange != null ? asString(raw.exchange) : undefined,
     traderId: raw.traderId != null ? asString(raw.traderId) : undefined,
     featureSpecVersion:

@@ -2,6 +2,7 @@
 
 import { OverviewDashboard } from "@/features/overview/OverviewDashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api/client";
 import { listAlerts } from "@/lib/api/endpoints/alerts";
 import { getOverviewMetrics } from "@/lib/api/endpoints/metrics";
 import { listTrades } from "@/lib/api/endpoints/trades";
@@ -43,6 +44,9 @@ export default function OverviewPage() {
       recentAlerts={alertsQuery.data?.items ?? []}
       isLoading={isPageLoading}
       metricsError={metricsQuery.isError}
+      metricsErrorMessage={
+        metricsQuery.error instanceof ApiError ? metricsQuery.error.message : undefined
+      }
       tradesError={tradesQuery.isError}
       alertsError={alertsQuery.isError}
     />

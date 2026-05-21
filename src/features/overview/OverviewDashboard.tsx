@@ -14,6 +14,7 @@ export type OverviewDashboardProps = {
   recentAlerts: Alert[];
   isLoading?: boolean;
   metricsError?: boolean;
+  metricsErrorMessage?: string;
   tradesError?: boolean;
   alertsError?: boolean;
 };
@@ -48,6 +49,7 @@ export function OverviewDashboard({
   recentAlerts,
   isLoading = false,
   metricsError = false,
+  metricsErrorMessage,
   tradesError = false,
   alertsError = false,
 }: OverviewDashboardProps) {
@@ -67,7 +69,12 @@ export function OverviewDashboard({
 
       <section>
         {metricsError ? (
-          <InlineError message="Metrics unavailable. Check API auth and NEXT_PUBLIC_API_BASE_URL." />
+          <InlineError
+            message={
+              metricsErrorMessage ??
+              "Metrics unavailable. Sign out and sign in again if your account was just provisioned."
+            }
+          />
         ) : (
           <OverviewKpiStrip metrics={metrics} />
         )}

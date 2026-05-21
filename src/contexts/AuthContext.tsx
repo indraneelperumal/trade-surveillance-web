@@ -123,7 +123,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const refreshed = await refreshAuth(stored.refreshToken);
           const next = persistSession(refreshed);
-          if (!cancelled) setUser(next.user);
+          if (!cancelled) {
+            setUser(next.user);
+            updateAccessTokenFlag(next.accessToken);
+          }
         } catch {
           clearSession();
           if (!cancelled) {

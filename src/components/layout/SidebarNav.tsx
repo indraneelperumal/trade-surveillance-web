@@ -91,11 +91,11 @@ function NavLink({ item, badge }: { item: NavItem; badge?: string }) {
 
 export function SidebarNav() {
   const { theme, toggle } = useTheme();
-  const { user, signOut, isLoading: authLoading } = useAuth();
+  const { user, signOut, isLoading: authLoading, hasAccessToken } = useAuth();
   const router = useRouter();
 
   const openAlertsQuery = useQuery({
-    enabled: Boolean(user),
+    enabled: hasAccessToken,
     queryKey: queryKeys.alerts.list({ status: "open", offset: 0, limit: 1 }),
     queryFn: () => listAlerts({ status: "open", offset: 0, limit: 1 }),
   });

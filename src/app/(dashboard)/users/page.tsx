@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { Panel, PanelHead } from "@/components/ui/Panel";
+import { useAuth } from "@/contexts/AuthContext";
 import { patchUser } from "@/lib/api/endpoints/users";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { listUsers } from "@/lib/api/endpoints/users";
@@ -9,10 +10,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
+  const { hasAccessToken, isLoading: authLoading } = useAuth();
 
   const usersQuery = useQuery({
     queryKey: queryKeys.users.list({ offset: 0, limit: 50 }),
     queryFn: () => listUsers({ offset: 0, limit: 50 }),
+    enabled: !authLoading && hasAccessToken,
   });
 
   const mutation = useMutation({

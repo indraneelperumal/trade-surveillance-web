@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ApiError } from "@/lib/api/client";
-import { listAlerts, patchAlert } from "@/lib/api/endpoints/alerts";
+import { getAlert, listAlerts, patchAlert } from "@/lib/api/endpoints/alerts";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getInvestigation,
   listInvestigations,
@@ -77,12 +78,14 @@ export function AlertsWorkspace({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { hasAccessToken, isLoading: authLoading } = useAuth();
+  const queriesEnabled = !authLoading && hasAccessToken;
   const tab = (searchParams.get("tab") as Tab) ?? "all";
   const status = searchParams.get("status") ?? initialStatus;
   const severity = searchParams.get("severity") ?? initialSeverity;
   const offset = Number(searchParams.get("offset") ?? initialOffset);
   const limit = Number(searchParams.get("limit") ?? initialLimit);
-  const selected = searchParams.get("selected") ?? initialSelected;
+  const selectedId = searchParams.get("selected") ?? initialSelected;
 
   const [pendingAlertId, setPendingAlertId] = useState<string | null>(null);
 
@@ -100,11 +103,25 @@ export function AlertsWorkspace({
   const alertsQuery = useQuery({
     queryKey: queryKeys.alerts.list({ tab, status: queryStatus ?? "all", severity: querySeverity ?? "all", offset, limit }),
     queryFn: () => listAlerts({ status: queryStatus, severity: querySeverity, offset, limit }),
+    enabled: queriesEnabled,
   });
 
   const alerts = alertsQuery.data?.items ?? [];
   const total  = alertsQuery.data?.total ?? 0;
-  const selectedAlert = alerts.find((item) => item.id === selected) ?? null;
+  const selectedFromList = selectedId
+    ? alerts.find((item) => item.id === selectedId) ?? null
+    : null;
+
+  const selectedAlertQuery = useQuery({
+    queryKey: queryKeys.alerts.detail(selectedId ?? "none"),
+    queryFn: () => getAlert(selectedId!),
+    enabled: queriesEnabled && Boolean(selectedId) && !selectedFromList,
+  });
+
+  const selectedAlert = selectedFromList ?? selectedAlertQuery.data ?? null;
+  const detailOpen = Boolean(selectedId);
+  const detailLoading =
+    detailOpen && !selectedAlert && (selectedAlertQuery.isPending || selectedAlertQuery.isFetching);
 
   useEffect(() => {
     if (pendingAlertId && selectedAlert?.id !== pendingAlertId) setPendingAlertId(null);
@@ -113,12 +130,13 @@ export function AlertsWorkspace({
   const isRunning = pendingAlertId === selectedAlert?.id || selectedAlert?.status === "in-progress";
 
   const investigationsQuery = useQuery({
-    queryKey: queryKeys.investigations.list({ alertId: selectedAlert?.id ?? "none" }),
-    queryFn: () => selectedAlert
-      ? listInvestigations({ alert_id: selectedAlert.id, offset: 0, limit: 1 })
-      : Promise.resolve({ items: [], total: 0, offset: 0, limit: 1 }),
-    enabled: Boolean(selectedAlert),
-    refetchInterval: (pendingAlertId === selectedAlert?.id || selectedAlert?.status === "in-progress") ? 3000 : false,
+    queryKey: queryKeys.investigations.list({ alert_id: selectedId ?? "none" }),
+    queryFn: () =>
+      selectedId
+        ? listInvestigations({ alert_id: selectedId, offset: 0, limit: 1 })
+        : Promise.resolve({ items: [], total: 0, offset: 0, limit: 1 }),
+    enabled: queriesEnabled && Boolean(selectedId),
+    refetchInterval: isRunning ? 3000 : false,
   });
 
   const latestInvestigation = investigationsQuery.data?.items[0];
@@ -137,17 +155,19 @@ export function AlertsWorkspace({
   });
 
   const notesQuery = useQuery({
-    queryKey: queryKeys.notes.list({ alertId: selectedAlert?.id ?? "none" }),
-    queryFn: () => selectedAlert
-      ? listNotes({ alert_id: selectedAlert.id, offset: 0, limit: 50 })
-      : Promise.resolve({ items: [], total: 0, offset: 0, limit: 50 }),
-    enabled: Boolean(selectedAlert),
+    queryKey: queryKeys.notes.list({ alert_id: selectedId ?? "none" }),
+    queryFn: () =>
+      selectedId
+        ? listNotes({ alert_id: selectedId, offset: 0, limit: 50 })
+        : Promise.resolve({ items: [], total: 0, offset: 0, limit: 50 }),
+    enabled: queriesEnabled && Boolean(selectedId),
   });
 
   const tradeQuery = useQuery({
-    queryKey: ["trade", selectedAlert?.tradeId ?? "none"],
-    queryFn: () => selectedAlert?.tradeId ? getTrade(selectedAlert.tradeId) : Promise.resolve(null),
-    enabled: Boolean(selectedAlert?.tradeId),
+    queryKey: queryKeys.trades.detail(selectedAlert?.tradeId ?? "none"),
+    queryFn: () =>
+      selectedAlert?.tradeId ? getTrade(selectedAlert.tradeId) : Promise.resolve(null),
+    enabled: queriesEnabled && Boolean(selectedAlert?.tradeId),
   });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
@@ -171,6 +191,7 @@ export function AlertsWorkspace({
     onSuccess: (_, alertId) => {
       setPendingAlertId(alertId);
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.investigations.list({ alert_id: alertId }) });
     },
   });
 
@@ -178,8 +199,6 @@ export function AlertsWorkspace({
   const openCount       = alerts.filter((a) => a.status === "open").length;
   const inProgressCount = alerts.filter((a) => a.status === "in-progress").length;
   const highCount       = alerts.filter((a) => a.severity === "high").length;
-
-  const detailOpen = Boolean(selectedAlert);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%" }}>
@@ -191,13 +210,15 @@ export function AlertsWorkspace({
           background: "var(--sev-high-bg)", color: "var(--sev-high-text)",
           border: "1px solid var(--sev-high-bar)",
         }}>
-          Failed to load alerts. Check backend health and NEXT_PUBLIC_API_BASE_URL.
+          {alertsQuery.error instanceof ApiError
+            ? alertsQuery.error.message
+            : "Failed to load alerts. Check backend health and NEXT_PUBLIC_API_BASE_URL."}
         </div>
       )}
 
       {/* ── KPI row ──────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 12 }}>
-        <KpiCard label="Total loaded"  value={total.toLocaleString()} />
+        <KpiCard label="Matching alerts" value={total.toLocaleString()} />
         <KpiCard label="Open"          value={openCount}       accent="blue" />
         <KpiCard label="In progress"   value={inProgressCount} accent="amber" />
         <KpiCard label="High severity" value={highCount}       accent="red" />
@@ -292,7 +313,7 @@ export function AlertsWorkspace({
             ) : (
               <AlertQueueTable
                 alerts={alerts}
-                selectedAlertId={selectedAlert?.id}
+                selectedAlertId={selectedId}
                 onSelect={(alertId) => updateUrl({ selected: alertId })}
               />
             )}
@@ -333,21 +354,33 @@ export function AlertsWorkspace({
             className="drawer-enter"
             style={{ width: 420, flexShrink: 0, display: "flex", flexDirection: "column", overflowY: "auto" }}
           >
-            <AlertDetailPanel
-              alert={selectedAlert ?? undefined}
-              trade={tradeQuery.data}
-              investigation={investigationDetailQuery.data}
-              notes={notesQuery.data?.items ?? []}
-              isRunning={isRunning}
-              onClose={() => updateUrl({ selected: "" })}
-              onRunInvestigation={() => {
-                if (selectedAlert) triggerMutation.mutate(selectedAlert.id);
-              }}
-              onSubmitAction={(values) => {
-                if (!selectedAlert) return;
-                actionMutation.mutate({ alertId: selectedAlert.id, values });
-              }}
-            />
+            {detailLoading ? (
+              <div style={{ padding: 24, fontSize: 13, color: "var(--color-text-tertiary)" }}>
+                Loading alert…
+              </div>
+            ) : selectedAlertQuery.isError && !selectedAlert ? (
+              <div style={{ padding: 16, fontSize: 12, color: "var(--sev-high-text)" }}>
+                {selectedAlertQuery.error instanceof ApiError
+                  ? selectedAlertQuery.error.message
+                  : "Could not load this alert."}
+              </div>
+            ) : (
+              <AlertDetailPanel
+                alert={selectedAlert ?? undefined}
+                trade={tradeQuery.data}
+                investigation={investigationDetailQuery.data}
+                notes={notesQuery.data?.items ?? []}
+                isRunning={isRunning}
+                onClose={() => updateUrl({ selected: "" })}
+                onRunInvestigation={() => {
+                  if (selectedId) triggerMutation.mutate(selectedId);
+                }}
+                onSubmitAction={(values) => {
+                  if (!selectedId) return;
+                  actionMutation.mutate({ alertId: selectedId, values });
+                }}
+              />
+            )}
             {/* Error banners */}
             {actionMutation.isError && (
               <div style={{ padding: "8px 16px", fontSize: 11, color: "var(--sev-high-text)" }}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { useAuth } from "@/contexts/AuthContext";
 import { listAlerts } from "@/lib/api/endpoints/alerts";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useQuery } from "@tanstack/react-query";
@@ -16,9 +17,11 @@ const topbarByPath: Record<string, { title: string }> = {
 
 export function DashboardFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { hasAccessToken, isLoading: authLoading } = useAuth();
   const highSeverityQuery = useQuery({
     queryKey: queryKeys.alerts.list({ severity: "high", status: "open", offset: 0, limit: 1 }),
     queryFn: () => listAlerts({ severity: "high", status: "open", offset: 0, limit: 1 }),
+    enabled: !authLoading && hasAccessToken,
   });
 
   const key = Object.keys(topbarByPath).find((p) => pathname.startsWith(p));

@@ -2,6 +2,7 @@
 
 import { Panel, PanelHead } from "@/components/ui/Panel";
 import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api/client";
 import { listInvestigations } from "@/lib/api/endpoints/investigations";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { formatRelativeDate } from "@/lib/utils";
@@ -27,7 +28,7 @@ export default function InvestigationsPage() {
   const { hasAccessToken, isLoading: authLoading } = useAuth();
   const enabled = !authLoading && hasAccessToken;
 
-  const { data, isPending, isError } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: queryKeys.investigations.list({ offset: 0, limit: 30 }),
     queryFn: () => listInvestigations({ offset: 0, limit: 30 }),
     enabled,
@@ -45,7 +46,9 @@ export default function InvestigationsPage() {
         </>
       ) : isError ? (
         <div className="p-6 text-[12px] text-[#A32D2D]">
-          Failed to load investigations. Check backend connection.
+          {error instanceof ApiError
+            ? error.message
+            : "Failed to load investigations. Check backend connection."}
         </div>
       ) : data?.items.length === 0 ? (
         <div className="p-6 text-[12px] text-[var(--color-text-secondary)]">

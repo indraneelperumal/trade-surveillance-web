@@ -17,6 +17,7 @@ export const queryKeys = {
   },
   trades: {
     list: (params: Record<string, string | number>) => ["trades", params] as const,
+    detail: (tradeId: string) => ["trades", "detail", tradeId] as const,
   },
   metrics: {
     overview: () => ["metrics", "overview"] as const,
