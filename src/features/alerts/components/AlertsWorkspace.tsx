@@ -10,13 +10,11 @@ import {
 } from "@/lib/api/endpoints/investigations";
 import { createNote, listNotes } from "@/lib/api/endpoints/notes";
 import { getTrade } from "@/lib/api/endpoints/trades";
-import { listModelRuns } from "@/lib/api/endpoints/modelRuns";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { AlertDetailPanel } from "@/features/alerts/components/AlertDetailPanel";
 import { AlertFilters } from "@/features/alerts/components/AlertFilters";
 import { AlertQueueTable } from "@/features/alerts/components/AlertQueueTable";
 import { AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
-import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -79,8 +77,6 @@ export function AlertsWorkspace({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { appRole } = useAuth();
-
   const tab = (searchParams.get("tab") as Tab) ?? "all";
   const status = searchParams.get("status") ?? initialStatus;
   const severity = searchParams.get("severity") ?? initialSeverity;
@@ -154,11 +150,6 @@ export function AlertsWorkspace({
     enabled: Boolean(selectedAlert?.tradeId),
   });
 
-  const modelRunsQuery = useQuery({
-    queryKey: queryKeys.modelRuns.list({ offset: 0, limit: 1 }),
-    queryFn: () => listModelRuns({ offset: 0, limit: 1 }),
-  });
-
   // ── Mutations ──────────────────────────────────────────────────────────────
   const actionMutation = useMutation({
     mutationFn: async ({ alertId, values }: { alertId: string; values: AlertActionValues }) => {
@@ -187,7 +178,6 @@ export function AlertsWorkspace({
   const openCount       = alerts.filter((a) => a.status === "open").length;
   const inProgressCount = alerts.filter((a) => a.status === "in-progress").length;
   const highCount       = alerts.filter((a) => a.severity === "high").length;
-  const precision       = modelRunsQuery.data?.items[0]?.precision;
 
   const detailOpen = Boolean(selectedAlert);
 
@@ -211,9 +201,6 @@ export function AlertsWorkspace({
         <KpiCard label="Open"          value={openCount}       accent="blue" />
         <KpiCard label="In progress"   value={inProgressCount} accent="amber" />
         <KpiCard label="High severity" value={highCount}       accent="red" />
-        {precision != null && (
-          <KpiCard label="Model precision" value={`${(precision * 100).toFixed(1)}%`} />
-        )}
       </div>
 
       {/* ── Main panel ───────────────────────────────────────────────────── */}
@@ -352,7 +339,6 @@ export function AlertsWorkspace({
               investigation={investigationDetailQuery.data}
               notes={notesQuery.data?.items ?? []}
               isRunning={isRunning}
-              appRole={appRole}
               onClose={() => updateUrl({ selected: "" })}
               onRunInvestigation={() => {
                 if (selectedAlert) triggerMutation.mutate(selectedAlert.id);

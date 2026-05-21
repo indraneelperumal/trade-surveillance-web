@@ -33,13 +33,9 @@ export type AlertActionValues = z.infer<typeof schema>;
 
 export function AlertActionsForm({
   onSubmit,
-  appRole,
 }: {
   onSubmit: (values: AlertActionValues) => void;
-  appRole?: string | null;
 }) {
-  const isComplianceLead = appRole === "COMPLIANCE_LEAD";
-
   const form = useForm<AlertActionValues>({
     resolver: zodResolver(schema),
     defaultValues: { status: "open", disposition: "", assignee: "", note: "" },
@@ -63,16 +59,10 @@ export function AlertActionsForm({
       >
         <option value="open">Open</option>
         <option value="in-progress">In progress</option>
-        {isComplianceLead && <option value="closed">Closed</option>}
+        <option value="closed">Closed</option>
       </select>
 
-      {!isComplianceLead && (
-        <p className="text-[11px] text-[var(--color-text-secondary)]">
-          Closing alerts requires Compliance Lead access.
-        </p>
-      )}
-
-      {isComplianceLead && isClosing && (
+      {isClosing && (
         <div className="flex flex-col gap-1">
           <select
             className="rounded-[6px] border border-[var(--color-border-secondary)] bg-[var(--color-background-primary)] px-2 py-1.5 text-[12px]"

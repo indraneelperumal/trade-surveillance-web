@@ -12,9 +12,6 @@ export const queryKeys = {
     detail: (investigationId: string) =>
       ["investigations", "detail", investigationId] as const,
   },
-  modelRuns: {
-    list: (params: Record<string, string | number>) => ["model-runs", params] as const,
-  },
   users: {
     list: (params: Record<string, string | number>) => ["users", params] as const,
   },

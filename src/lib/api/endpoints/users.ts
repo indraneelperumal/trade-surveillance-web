@@ -6,10 +6,6 @@ export function listUsers(query: ListQuery) {
   return apiFetch<PaginatedResponse<User>>("/api/v1/users", { query });
 }
 
-export function getMe() {
-  return apiFetch<User>("/api/v1/users/me");
-}
-
 // Request body uses snake_case — the API client does not convert request keys.
 type UserUpdatePayload = {
   is_active?: boolean;

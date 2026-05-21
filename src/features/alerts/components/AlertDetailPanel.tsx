@@ -25,7 +25,6 @@ type AlertDetailPanelProps = {
   onRunInvestigation?: () => void;
   onSubmitAction: (values: AlertActionValues) => void;
   onClose?: () => void;
-  appRole?: string | null;
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -56,7 +55,6 @@ export function AlertDetailPanel({
   onRunInvestigation,
   onSubmitAction,
   onClose,
-  appRole,
 }: AlertDetailPanelProps) {
   if (!alert) {
     return (
@@ -271,7 +269,7 @@ export function AlertDetailPanel({
         <Divider />
 
         {/* ── Actions ─────────────────────────────────────────────────────── */}
-        <AlertActionsForm onSubmit={onSubmitAction} appRole={appRole} />
+        <AlertActionsForm onSubmit={onSubmitAction} />
       </div>
     </div>
   );

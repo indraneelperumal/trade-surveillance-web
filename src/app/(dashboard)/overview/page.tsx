@@ -4,7 +4,6 @@ import { OverviewDashboard } from "@/features/overview/OverviewDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { listAlerts } from "@/lib/api/endpoints/alerts";
 import { getOverviewMetrics } from "@/lib/api/endpoints/metrics";
-import { listModelRuns } from "@/lib/api/endpoints/modelRuns";
 import { listTrades } from "@/lib/api/endpoints/trades";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useQuery } from "@tanstack/react-query";
@@ -16,12 +15,6 @@ export default function OverviewPage() {
   const metricsQuery = useQuery({
     queryKey: queryKeys.metrics.overview(),
     queryFn: () => getOverviewMetrics(),
-    enabled,
-  });
-
-  const modelRunsQuery = useQuery({
-    queryKey: queryKeys.modelRuns.list({ offset: 0, limit: 5 }),
-    queryFn: () => listModelRuns({ offset: 0, limit: 5 }),
     enabled,
   });
 
@@ -40,25 +33,18 @@ export default function OverviewPage() {
   const isPageLoading =
     authLoading ||
     metricsQuery.isPending ||
-    modelRunsQuery.isPending ||
     tradesQuery.isPending ||
     alertsQuery.isPending;
-
-  const isError =
-    !isPageLoading &&
-    metricsQuery.isError &&
-    modelRunsQuery.isError &&
-    tradesQuery.isError &&
-    alertsQuery.isError;
 
   return (
     <OverviewDashboard
       metrics={metricsQuery.data ?? null}
-      modelRuns={modelRunsQuery.data?.items ?? []}
       recentTrades={tradesQuery.data?.items ?? []}
       recentAlerts={alertsQuery.data?.items ?? []}
       isLoading={isPageLoading}
-      isError={isError}
+      metricsError={metricsQuery.isError}
+      tradesError={tradesQuery.isError}
+      alertsError={alertsQuery.isError}
     />
   );
 }

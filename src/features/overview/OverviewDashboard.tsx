@@ -2,20 +2,20 @@ import type { ReactNode } from "react";
 import type { OverviewMetrics } from "@/lib/api/endpoints/metrics";
 import { AnomalyDonut } from "@/features/overview/components/AnomalyDonut";
 import { DistributionStrip } from "@/features/overview/components/DistributionStrip";
-import { ModelHealthCard } from "@/features/overview/components/ModelHealthCard";
 import { OverviewKpiStrip } from "@/features/overview/components/OverviewKpiStrip";
 import { RecentAlerts } from "@/features/overview/components/RecentAlerts";
 import { RecentTrades } from "@/features/overview/components/RecentTrades";
 import { TopSymbols } from "@/features/overview/components/TopSymbols";
-import type { Alert, ModelRun, Trade } from "@/types/domain";
+import type { Alert, Trade } from "@/types/domain";
 
 export type OverviewDashboardProps = {
   metrics: OverviewMetrics | null;
-  modelRuns: ModelRun[];
   recentTrades: Trade[];
   recentAlerts: Alert[];
   isLoading?: boolean;
-  isError?: boolean;
+  metricsError?: boolean;
+  tradesError?: boolean;
+  alertsError?: boolean;
 };
 
 function SectionHeading({ children }: { children: ReactNode }) {
@@ -30,13 +30,26 @@ function SectionHeading({ children }: { children: ReactNode }) {
   );
 }
 
+function InlineError({ message }: { message: string }) {
+  return (
+    <div style={{
+      borderRadius: 10, border: "1px solid #F4C7C7",
+      background: "#FCEBEB", padding: "10px 14px",
+      fontSize: 12, color: "#A32D2D",
+    }}>
+      {message}
+    </div>
+  );
+}
+
 export function OverviewDashboard({
   metrics,
-  modelRuns,
   recentTrades,
   recentAlerts,
   isLoading = false,
-  isError = false,
+  metricsError = false,
+  tradesError = false,
+  alertsError = false,
 }: OverviewDashboardProps) {
   if (isLoading) {
     return (
@@ -49,43 +62,29 @@ export function OverviewDashboard({
     );
   }
 
-  if (isError) {
-    return (
-      <div style={{
-        borderRadius: 10, border: "1px solid #F4C7C7",
-        background: "#FCEBEB", padding: "12px 16px",
-        fontSize: 12, color: "#A32D2D",
-      }}>
-        Overview data unavailable. Check backend connection.
-      </div>
-    );
-  }
-
-  const latestRun = modelRuns[0];
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-      {/* ── KPI strip ─────────────────────────────────────────────────────── */}
       <section>
-        <OverviewKpiStrip metrics={metrics} />
+        {metricsError ? (
+          <InlineError message="Metrics unavailable. Check API auth and NEXT_PUBLIC_API_BASE_URL." />
+        ) : (
+          <OverviewKpiStrip metrics={metrics} />
+        )}
       </section>
 
-      {/* ── Detection pipeline ────────────────────────────────────────────── */}
       <section>
-        <SectionHeading>Detection pipeline</SectionHeading>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
-          {metrics ? (
-            <AnomalyDonut alertsByAnomalyType={metrics.alertsByAnomalyType} />
-          ) : (
-            <div style={{ height: 200, borderRadius: 10, background: "var(--color-background-secondary)" }} />
-          )}
-          <ModelHealthCard run={latestRun} />
-        </div>
+        <SectionHeading>Alerts by anomaly type</SectionHeading>
+        {metricsError ? (
+          <InlineError message="Chart data unavailable." />
+        ) : metrics ? (
+          <AnomalyDonut alertsByAnomalyType={metrics.alertsByAnomalyType} />
+        ) : (
+          <div style={{ height: 200, borderRadius: 10, background: "var(--color-background-secondary)" }} />
+        )}
       </section>
 
-      {/* ── Queue health ──────────────────────────────────────────────────── */}
-      {metrics && (
+      {metrics && !metricsError && (
         <section>
           <SectionHeading>Queue health</SectionHeading>
           <DistributionStrip
@@ -95,14 +94,23 @@ export function OverviewDashboard({
         </section>
       )}
 
-      {/* ── Activity ──────────────────────────────────────────────────────── */}
       <section>
         <SectionHeading>Activity</SectionHeading>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] mb-4">
-          <RecentAlerts alerts={recentAlerts} />
-          {metrics && <TopSymbols rows={metrics.topSymbolsByAlerts} />}
+          {alertsError ? (
+            <InlineError message="Recent alerts unavailable." />
+          ) : (
+            <RecentAlerts alerts={recentAlerts} />
+          )}
+          {metrics && !metricsError ? (
+            <TopSymbols rows={metrics.topSymbolsByAlerts} />
+          ) : null}
         </div>
-        <RecentTrades trades={recentTrades} />
+        {tradesError ? (
+          <InlineError message="Recent trades unavailable." />
+        ) : (
+          <RecentTrades trades={recentTrades} />
+        )}
       </section>
 
     </div>
