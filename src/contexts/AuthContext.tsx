@@ -1,110 +1,149 @@
 "use client";
 
-import { setAuthToken } from "@/lib/api/client";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Session, User } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { login as apiLogin, refreshAuth } from "@/lib/api/endpoints/auth";
+import { apiFetch, setAuthToken } from "@/lib/api/client";
+import {
+  clearSession,
+  loadSession,
+  saveSession,
+  type StoredAuthSession,
+} from "@/lib/auth/session";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+
+export type AuthUser = {
+  id: string;
+  email: string;
+};
 
 type AuthContextValue = {
-  session: Session | null;
-  user: User | null;
+  user: AuthUser | null;
+  isAuthenticated: boolean;
   /** App-level role from the users table (ANALYST | COMPLIANCE_LEAD). */
   appRole: string | null;
   isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
-  session: null,
   user: null,
+  isAuthenticated: false,
   appRole: null,
   isLoading: true,
+  signIn: async () => {},
   signOut: async () => {},
 });
 
+function persistSession(payload: {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: AuthUser;
+}): StoredAuthSession {
+  const session: StoredAuthSession = {
+    accessToken: payload.accessToken,
+    refreshToken: payload.refreshToken,
+    expiresAt:
+      payload.expiresIn > 0
+        ? Math.floor(Date.now() / 1000) + payload.expiresIn
+        : 0,
+    user: payload.user,
+  };
+  saveSession(session);
+  setAuthToken(payload.accessToken || null);
+  return session;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [appRole, setAppRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Lazily initialised — only ever created in the browser, never during SSR.
-  const supabaseRef = useRef<SupabaseClient | null>(null);
-
-  function getSupabase(): SupabaseClient | null {
-    if (typeof window === "undefined") return null;
-    if (!supabaseRef.current) {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!url || !key) return null;
-      // Dynamic import to avoid bundling on the server.
-      const { createBrowserClient } = require("@supabase/ssr") as typeof import("@supabase/ssr");
-      supabaseRef.current = createBrowserClient(url, key);
+  const fetchAppRole = useCallback(async () => {
+    try {
+      const data = await apiFetch<{ role: string }>("/api/v1/users/me");
+      setAppRole(data.role ?? null);
+    } catch {
+      setAppRole(null);
     }
-    return supabaseRef.current;
-  }
-
-  useEffect(() => {
-    const supabase = getSupabase();
-    if (!supabase) {
-      setIsLoading(false);
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setAuthToken(s?.access_token ?? null);
-      if (s) void fetchAppRole(s.access_token, s.user.email ?? "");
-      setIsLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setAuthToken(s?.access_token ?? null);
-      if (s) {
-        void fetchAppRole(s.access_token, s.user.email ?? "");
-      } else {
-        setAppRole(null);
-      }
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function fetchAppRole(token: string | undefined, _email: string | undefined) {
-    if (!token) return;
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-      // Use /me to avoid paginated user list — resilient regardless of roster size.
-      const res = await fetch(`${apiBase}/api/v1/users/me`, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        cache: "no-store",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { role: string };
-      if (data.role) setAppRole(data.role);
-    } catch {
-      // Non-fatal — role stays null, UI falls back to least-privilege display.
-    }
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  async function signOut() {
-    const supabase = getSupabase();
-    if (supabase) await supabase.auth.signOut();
+    async function bootstrap() {
+      const stored = loadSession();
+      if (!stored) {
+        if (!cancelled) setIsLoading(false);
+        return;
+      }
+
+      setUser(stored.user);
+      setAuthToken(stored.accessToken || null);
+
+      const now = Math.floor(Date.now() / 1000);
+      const needsRefresh =
+        stored.refreshToken &&
+        stored.expiresAt > 0 &&
+        stored.expiresAt - now < 120;
+
+      if (needsRefresh) {
+        try {
+          const refreshed = await refreshAuth(stored.refreshToken);
+          const next = persistSession(refreshed);
+          if (!cancelled) setUser(next.user);
+        } catch {
+          clearSession();
+          if (!cancelled) {
+            setUser(null);
+            setAuthToken(null);
+            setAppRole(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+      }
+
+      if (!cancelled) {
+        await fetchAppRole();
+        setIsLoading(false);
+      }
+    }
+
+    void bootstrap();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchAppRole]);
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const result = await apiLogin(email, password);
+      const session = persistSession(result);
+      setUser(session.user);
+      await fetchAppRole();
+    },
+    [fetchAppRole],
+  );
+
+  const signOut = useCallback(async () => {
+    clearSession();
     setAuthToken(null);
-    setSession(null);
     setUser(null);
     setAppRole(null);
-  }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user, appRole, isLoading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: user !== null,
+        appRole,
+        isLoading,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

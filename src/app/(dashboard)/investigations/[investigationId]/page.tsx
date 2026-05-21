@@ -23,8 +23,8 @@ export default function InvestigationDetailPage({
   params: Promise<{ investigationId: string }>;
 }) {
   const { investigationId } = use(params);
-  const { session, isLoading: authLoading } = useAuth();
-  const enabled = !authLoading && !!session && Boolean(investigationId);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const enabled = !authLoading && isAuthenticated && Boolean(investigationId);
 
   const { data: investigation, isPending, isError } = useQuery({
     queryKey: queryKeys.investigations.detail(investigationId),

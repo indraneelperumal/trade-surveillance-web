@@ -1,11 +1,14 @@
 "use client";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -16,25 +19,16 @@ function LoginForm() {
     setIsLoading(true);
     setError(null);
 
-    const { createBrowserClient } = await import("@supabase/ssr");
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
+    try {
+      await signIn(email, password);
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : "Sign in failed. Please try again.";
+      setError(message);
       setIsLoading(false);
       return;
     }
 
-    // Only allow redirects to relative in-app paths (single leading slash).
-    // Reject protocol-relative URLs like //evil.com to prevent open redirects.
     const raw = searchParams.get("redirectTo") ?? "";
     const redirectTo =
       raw.startsWith("/") && !raw.startsWith("//") ? raw : "/overview";
@@ -61,7 +55,6 @@ function LoginForm() {
           padding: "32px 28px",
         }}
       >
-        {/* Header */}
         <div style={{ marginBottom: 28 }}>
           <div
             style={{
@@ -106,7 +99,6 @@ function LoginForm() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label

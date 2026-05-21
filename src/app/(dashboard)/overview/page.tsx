@@ -10,9 +10,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OverviewPage() {
-  const { session, isLoading: authLoading } = useAuth();
-  // Only fire queries once the auth session is known — prevents 401 on first render.
-  const enabled = !authLoading && !!session;
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const enabled = !authLoading && isAuthenticated;
 
   const metricsQuery = useQuery({
     queryKey: queryKeys.metrics.overview(),

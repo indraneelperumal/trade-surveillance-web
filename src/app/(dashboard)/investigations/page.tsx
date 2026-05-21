@@ -24,8 +24,8 @@ function SkeletonRow() {
 }
 
 export default function InvestigationsPage() {
-  const { session, isLoading: authLoading } = useAuth();
-  const enabled = !authLoading && !!session;
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const enabled = !authLoading && isAuthenticated;
 
   const { data, isPending, isError } = useQuery({
     queryKey: queryKeys.investigations.list({ offset: 0, limit: 30 }),

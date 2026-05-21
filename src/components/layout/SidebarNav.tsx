@@ -193,7 +193,7 @@ export function SidebarNav() {
         {user?.email && (
           <div style={{ padding: "8px 14px 0" }}>
             <div style={{ fontSize: 11, color: "var(--sidebar-text)", marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user.email}
+              {user?.email ?? "Signed in"}
             </div>
             <button
               onClick={handleSignOut}

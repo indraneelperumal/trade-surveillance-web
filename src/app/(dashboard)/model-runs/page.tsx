@@ -29,8 +29,8 @@ function RowSkeleton() {
 }
 
 export default function ModelRunsPage() {
-  const { session, isLoading: authLoading } = useAuth();
-  const enabled = !authLoading && !!session;
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const enabled = !authLoading && isAuthenticated;
 
   const { data: modelRuns, isPending, isError } = useQuery({
     queryKey: queryKeys.modelRuns.list({ offset: 0, limit: 20 }),

@@ -9,16 +9,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Backend API URL
+## Environment
 
-The app reads **`NEXT_PUBLIC_API_BASE_URL`** (see [`src/lib/api/client.ts`](src/lib/api/client.ts)). Set it before `npm run dev`:
+Copy `env.local.example` to `.env.local`. The web app only needs:
 
-```bash
-export NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
-npm run dev
-```
+- **`NEXT_PUBLIC_API_BASE_URL`** — FastAPI base URL (no trailing slash), e.g. `http://localhost:8000`
 
-On **Vercel**, add the same variable in Project → Settings → Environment Variables (e.g. `https://your-api.onrender.com` — **no trailing slash**). The FastAPI service must list your Vercel origin in **`ALLOWED_ORIGINS`** (comma-separated) or the browser will hit CORS errors.
+Auth (email/password login, JWT issuance) runs on the **API** (`POST /api/v1/auth/login`). Supabase keys stay in the API `.env`, not here.
+
+On **Vercel**, set `NEXT_PUBLIC_API_BASE_URL` to your deployed API. The API must list your Vercel origin in **`ALLOWED_ORIGINS`** or the browser will hit CORS errors.
 
 ## Deploy on Vercel
 
