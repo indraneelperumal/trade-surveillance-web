@@ -5,7 +5,7 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 type RequestOptions = RequestInit & {
-  query?: Record<string, string | number | undefined | null>;
+  query?: Record<string, string | number | boolean | undefined | null>;
 };
 
 function toCamelCaseKey(key: string) {
@@ -30,7 +30,7 @@ function camelizeValue(value: unknown): unknown {
 
 function withQuery(
   path: string,
-  query?: Record<string, string | number | undefined | null>,
+  query?: Record<string, string | number | boolean | undefined | null>,
 ) {
   if (!query) return path;
   const params = new URLSearchParams();

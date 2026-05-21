@@ -8,6 +8,10 @@ export type AlertListQuery = ListQuery & {
   severity?: string;
   symbol?: string;
   anomalyType?: string;
+  assignedTo?: string;
+  unassigned?: boolean;
+  stale?: boolean;
+  excludeClosed?: boolean;
 };
 
 export function listAlerts(query: AlertListQuery) {

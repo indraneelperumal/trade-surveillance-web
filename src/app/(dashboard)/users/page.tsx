@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Panel, PanelHead } from "@/components/ui/Panel";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/usePermissions";
 import { patchUser } from "@/lib/api/endpoints/users";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { listUsers } from "@/lib/api/endpoints/users";
@@ -11,11 +12,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const { hasAccessToken, isLoading: authLoading } = useAuth();
+  const { isOfficer } = useRole();
 
   const usersQuery = useQuery({
     queryKey: queryKeys.users.list({ offset: 0, limit: 50 }),
     queryFn: () => listUsers({ offset: 0, limit: 50 }),
-    enabled: !authLoading && hasAccessToken,
+    enabled: !authLoading && hasAccessToken && isOfficer,
   });
 
   const mutation = useMutation({
@@ -23,6 +25,17 @@ export default function UsersPage() {
       patchUser(userId, { isActive }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
+
+  if (!isOfficer) {
+    return (
+      <Panel>
+        <PanelHead title="Users" />
+        <div className="p-6 text-[12px] text-[var(--color-text-secondary)]">
+          Compliance officer access only.
+        </div>
+      </Panel>
+    );
+  }
 
   return (
     <Panel>

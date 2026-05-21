@@ -29,8 +29,9 @@ export function normalizeStatus(raw: unknown): AlertStatus {
   const s = asString(raw).toLowerCase().replace(/-/g, "_");
   if (s === "open") return "open";
   if (s === "in_progress" || s === "inprogress") return "in-progress";
+  if (s === "pending_officer_review") return "pending-officer-review";
   if (s === "closed") return "closed";
-  if (s === "escalated") return "escalated";
+  if (s === "escalated") return "pending-officer-review";
   return "open";
 }
 

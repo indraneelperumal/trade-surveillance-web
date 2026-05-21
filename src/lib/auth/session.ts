@@ -7,7 +7,7 @@ export type StoredAuthSession = {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
-  user: { id: string; email: string };
+  user: { id: string; email: string; role?: string; displayName?: string | null };
 };
 
 export function hasAuthCookie(): boolean {

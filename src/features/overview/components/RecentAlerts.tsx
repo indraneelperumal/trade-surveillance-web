@@ -27,7 +27,7 @@ export function RecentAlerts({ alerts }: Props) {
           {alerts.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center gap-2 py-2.5 text-[12px] first:pt-0">
               <Link
-                href={`/alerts?selected=${encodeURIComponent(a.id)}`}
+                href={`/cases/${encodeURIComponent(a.id)}`}
                 className="font-medium text-[#378ADD] hover:underline"
               >
                 {a.symbol || "—"}

@@ -68,7 +68,7 @@ export default function InvestigationsPage() {
             return (
               <Link
                 key={item.id}
-                href={`/investigations/${item.id}`}
+                href={`/cases/${item.alertId}`}
                 className="flex items-start justify-between gap-4 border-b border-[var(--color-border-tertiary)] px-4 py-3 hover:bg-[var(--color-background-secondary)]"
               >
                 <div className="min-w-0 flex-1">

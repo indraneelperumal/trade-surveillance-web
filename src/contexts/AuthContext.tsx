@@ -1,7 +1,9 @@
 "use client";
 
 import { login as apiLogin, refreshAuth } from "@/lib/api/endpoints/auth";
+import { getAuthSession, type AuthUser } from "@/lib/api/endpoints/session";
 import { setAuthToken } from "@/lib/api/client";
+import { defaultRouteForRole } from "@/lib/domain/labels";
 import {
   AUTH_SESSION_STORAGE_KEY,
   clearSession,
@@ -18,21 +20,17 @@ import {
   type ReactNode,
 } from "react";
 
-export type AuthUser = {
-  id: string;
-  email: string;
-};
+export type { AuthUser };
 
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  /** True when a non-empty API access token is in session (required for protected routes). */
   hasAccessToken: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<string>;
   signOut: () => void;
-  /** Re-read storage; clears state when cookie/storage are out of sync. */
   syncSession: () => boolean;
+  defaultRoute: string;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -40,14 +38,15 @@ const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
   hasAccessToken: false,
   isLoading: true,
-  signIn: async () => {},
+  signIn: async () => "/queue",
   signOut: () => {},
   syncSession: () => false,
+  defaultRoute: "/queue",
 });
 
 function applyStoredSession(stored: StoredAuthSession) {
   setAuthToken(stored.accessToken || null);
-  return stored.user;
+  return stored.user as AuthUser;
 }
 
 function persistSession(payload: {
@@ -89,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const token = stored.accessToken || null;
     setAuthToken(token);
-    setUser(stored.user);
+    setUser(stored.user as AuthUser);
     updateAccessTokenFlag(token);
     return true;
   }, [updateAccessTokenFlag]);
@@ -108,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setUser(stored.user);
+      setUser(stored.user as AuthUser);
       const token = stored.accessToken || null;
       setAuthToken(token);
       updateAccessTokenFlag(token);
@@ -124,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const refreshed = await refreshAuth(stored.refreshToken);
           const next = persistSession(refreshed);
           if (!cancelled) {
-            setUser(next.user);
+            setUser(next.user as AuthUser);
             updateAccessTokenFlag(next.accessToken);
           }
         } catch {
@@ -136,6 +135,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(false);
           }
           return;
+        }
+      }
+
+      if (token) {
+        try {
+          const session = await getAuthSession();
+          if (!cancelled) setUser(session.user);
+        } catch {
+          // keep stored user if session endpoint fails
         }
       }
 
@@ -159,12 +167,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [syncSession, updateAccessTokenFlag]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const result = await apiLogin(email, password);
-    const session = persistSession(result);
-    setUser(session.user);
-    updateAccessTokenFlag(session.accessToken);
-  }, [updateAccessTokenFlag]);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const result = await apiLogin(email, password);
+      const session = persistSession(result);
+      setUser(session.user as AuthUser);
+      updateAccessTokenFlag(session.accessToken);
+      return defaultRouteForRole(session.user.role ?? "ANALYST");
+    },
+    [updateAccessTokenFlag],
+  );
 
   const signOut = useCallback(() => {
     clearSession();
@@ -173,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateAccessTokenFlag(null);
     window.location.href = "/login";
   }, [updateAccessTokenFlag]);
+
+  const defaultRoute = defaultRouteForRole(user?.role ?? "ANALYST");
 
   return (
     <AuthContext.Provider
@@ -184,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         syncSession,
+        defaultRoute,
       }}
     >
       {children}

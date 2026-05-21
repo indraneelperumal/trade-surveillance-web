@@ -15,13 +15,14 @@ export function severityVariant(value: Severity) {
 export function statusLabel(value: AlertStatus) {
   if (value === "open") return "Open";
   if (value === "in-progress") return "In progress";
-  if (value === "escalated") return "Escalated";
+  if (value === "pending-officer-review") return "Pending officer";
+  if (value === "escalated") return "Pending officer";
   return "Closed";
 }
 
 export function statusVariant(value: AlertStatus) {
   if (value === "open") return "status-open";
   if (value === "in-progress") return "status-prog";
-  if (value === "escalated") return "status-closed";
+  if (value === "pending-officer-review" || value === "escalated") return "status-prog";
   return "status-closed";
 }

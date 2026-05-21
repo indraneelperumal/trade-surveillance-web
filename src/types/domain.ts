@@ -1,5 +1,5 @@
 export type Severity = "high" | "med" | "low" | "none";
-export type AlertStatus = "open" | "in-progress" | "closed" | "escalated";
+export type AlertStatus = "open" | "in-progress" | "pending-officer-review" | "closed" | "escalated";
 
 export type Trade = {
   id: string;

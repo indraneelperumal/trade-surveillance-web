@@ -9,7 +9,10 @@ import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 const topbarByPath: Record<string, { title: string }> = {
-  "/overview":       { title: "Overview" },
+  "/queue":          { title: "Work queue" },
+  "/cases":          { title: "Case" },
+  "/overview":       { title: "Command center" },
+  "/team":           { title: "Team" },
   "/alerts":         { title: "Alerts" },
   "/investigations": { title: "Investigations" },
   "/users":          { title: "Users" },

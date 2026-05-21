@@ -1,5 +1,4 @@
 import { SidebarNav } from "@/components/layout/SidebarNav";
-import { TickerStrip } from "@/components/layout/TickerStrip";
 import { Topbar } from "@/components/layout/Topbar";
 import { ReactNode } from "react";
 
@@ -15,7 +14,6 @@ export function AppShell({ title, actions, children }: AppShellProps) {
       <SidebarNav />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar title={title} actions={actions} />
-        <TickerStrip />
         <main className="flex-1 overflow-y-auto p-5">{children}</main>
       </div>
     </div>

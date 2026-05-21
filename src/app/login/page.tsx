@@ -8,7 +8,7 @@ import { Suspense, useEffect, useState } from "react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { signIn, isAuthenticated, isLoading: authLoading, defaultRoute } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,17 +18,18 @@ function LoginForm() {
     if (authLoading || !isAuthenticated) return;
     const raw = searchParams.get("redirectTo") ?? "";
     const redirectTo =
-      raw.startsWith("/") && !raw.startsWith("//") ? raw : "/overview";
+      raw.startsWith("/") && !raw.startsWith("//") ? raw : defaultRoute;
     router.replace(redirectTo);
-  }, [authLoading, isAuthenticated, router, searchParams]);
+  }, [authLoading, isAuthenticated, router, searchParams, defaultRoute]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
+    let landing = defaultRoute;
     try {
-      await signIn(email, password);
+      landing = await signIn(email, password);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Sign in failed. Please try again.";
@@ -39,7 +40,7 @@ function LoginForm() {
 
     const raw = searchParams.get("redirectTo") ?? "";
     const redirectTo =
-      raw.startsWith("/") && !raw.startsWith("//") ? raw : "/overview";
+      raw.startsWith("/") && !raw.startsWith("//") ? raw : landing;
     router.push(redirectTo);
     router.refresh();
   }
@@ -138,9 +139,12 @@ function LoginForm() {
                 outline: "none",
                 color: "#111827",
               }}
-              placeholder="analyst@yourfirm.com"
+              placeholder="analyst@demo.sentinel"
             />
           </div>
+          <p style={{ fontSize: 10, color: "#6B7280", marginTop: 8, lineHeight: 1.5 }}>
+            Demo: analyst@demo.sentinel (Analyst) · officer@demo.sentinel (Officer)
+          </p>
 
           <div>
             <label

@@ -8,7 +8,7 @@ export type AuthTokenPayload = {
   refreshToken: string;
   expiresIn: number;
   tokenType: string;
-  user: { id: string; email: string };
+  user: { id: string; email: string; role: string; displayName?: string | null };
 };
 
 function toCamelCaseKey(key: string) {
