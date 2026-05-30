@@ -10,6 +10,7 @@ import {
   type QueueFilterState,
 } from "@/features/alerts/components/QueueSearchToolbar";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { caseDetailHref } from "@/lib/navigation/caseReturn";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -23,7 +24,7 @@ const VIEWS: Record<string, { label: string; params: Record<string, string | boo
   stale: { label: "Stale >24h", params: { stale: true } },
 };
 
-import { caseDetailHref } from "@/lib/navigation/caseReturn";
+export function QueuePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasAccessToken, isLoading: authLoading } = useAuth();

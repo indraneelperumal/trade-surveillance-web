@@ -11,6 +11,7 @@ import {
   verdictLabel,
 } from "@/features/investigations/adapters/investigationView";
 import type { InvestigationListItem } from "@/features/investigations/hooks/useInvestigationListContext";
+import { anomalyLabel } from "@/lib/domain/labels";
 import { caseDetailHref } from "@/lib/navigation/caseReturn";
 import { formatDateTime, formatRelativeDate } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
