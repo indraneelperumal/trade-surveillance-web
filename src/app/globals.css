@@ -1,22 +1,33 @@
 @import "tailwindcss";
 
 /* ── Light theme (default) ───────────────────────────────────────────────── */
-:root {
-  --color-background-primary:   #ffffff;
-  --color-background-secondary: #f7f8fa;
-  --color-background-tertiary:  #f0f2f5;
-  --color-border-secondary:     #d4dae3;
-  --color-border-tertiary:      #e2e7ee;
-  --color-text-primary:         #0f172a;
-  --color-text-secondary:       #64748b;
-  --color-text-tertiary:        #94a3b8;
-  --color-accent-default:       #2563eb;
-  --color-accent-subtle:        #eff6ff;
+:root,
+[data-theme="light"] {
+  --color-background-primary:   #eef0f3;
+  --color-background-secondary: #e2e4e9;
+  --color-background-tertiary:  #d5d8de;
+  --color-border-secondary:     #b8bec8;
+  --color-border-tertiary:      #c8ced6;
+  --color-text-primary:         #111827;
+  --color-text-secondary:       #374151;
+  --color-text-tertiary:        #5b6472;
+  --color-accent-default:       #1d4ed8;
+  --color-accent-subtle:        #dbeafe;
 
-  /* Canvas (light) — neutral grid only, no color tint */
-  --app-canvas-bg:              #f7f7f8;
-  --app-grid-line:              rgba(0, 0, 0, 0.045);
+  /* Canvas (light) — soft gray, not harsh white */
+  --app-canvas-bg:              #d8dbe0;
+  --app-grid-line:              rgba(0, 0, 0, 0.07);
   --app-grid-size:              24px;
+
+  /* Filter chips */
+  --chip-bg:                    #dfe2e8;
+  --chip-border:                #b8bec8;
+  --chip-text:                  #1f2937;
+  --chip-hover-bg:              #d0d4dc;
+  --chip-hover-border:          #9aa3b2;
+  --chip-active-bg:             var(--color-accent-default);
+  --chip-active-border:         var(--color-accent-default);
+  --chip-active-text:           #ffffff;
 
   /* Brand — restrained, readable */
   --brand-title:                #0f172a;
@@ -66,15 +77,18 @@
   --callout-warning-title:  #92400e;
   --callout-warning-body:   #78350f;
 
-  --verdict-escalate-bg:     #fdecec;
-  --verdict-escalate-text:   #a32d2d;
-  --verdict-escalate-border: #f4c7c7;
-  --verdict-monitor-bg:      #fff8e6;
-  --verdict-monitor-text:    #7d5a00;
-  --verdict-monitor-border:  #ffe8a3;
-  --verdict-dismiss-bg:      #edfaf3;
-  --verdict-dismiss-text:    #1a6640;
-  --verdict-dismiss-border:  #b3e8cc;
+  --verdict-escalate-bg:     #f8d4d4;
+  --verdict-escalate-text:   #7f1d1d;
+  --verdict-escalate-border: #e8a0a0;
+  --verdict-monitor-bg:      #ffefbf;
+  --verdict-monitor-text:    #713f12;
+  --verdict-monitor-border:  #e8c878;
+  --verdict-dismiss-bg:      #ccefe0;
+  --verdict-dismiss-text:    #14532d;
+  --verdict-dismiss-border:  #8fd4b0;
+  --verdict-pending-bg:      #dfe2e8;
+  --verdict-pending-text:    #374151;
+  --verdict-pending-border:  #b8bec8;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -138,6 +152,19 @@
   --verdict-dismiss-bg:      #0f2e1f;
   --verdict-dismiss-text:    #86efac;
   --verdict-dismiss-border:  #166534;
+
+  --chip-bg:                 #1a1a1a;
+  --chip-border:             #333333;
+  --chip-text:               #e5e5e5;
+  --chip-hover-bg:           #262626;
+  --chip-hover-border:       #404040;
+  --chip-active-bg:          var(--color-accent-default);
+  --chip-active-border:      var(--color-accent-default);
+  --chip-active-text:        #ffffff;
+
+  --verdict-pending-bg:      var(--color-background-secondary);
+  --verdict-pending-text:    var(--color-text-secondary);
+  --verdict-pending-border:  var(--color-border-secondary);
 }
 
 @theme inline {
@@ -349,9 +376,33 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--verdict-dismiss-border);
 }
 .verdict-pending {
-  background: var(--color-background-secondary);
-  color: var(--color-text-secondary);
-  border-color: var(--color-border-secondary);
+  background: var(--verdict-pending-bg);
+  color: var(--verdict-pending-text);
+  border-color: var(--verdict-pending-border);
+}
+
+/* ── Filter chips (queue, investigations) ─────────────────────────────────── */
+.filter-chip {
+  cursor: pointer;
+  border-radius: 20px;
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.35;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.filter-chip:hover:not(.filter-chip--active) {
+  background: var(--chip-hover-bg);
+  border-color: var(--chip-hover-border);
+}
+.filter-chip--active {
+  background: var(--chip-active-bg);
+  border-color: var(--chip-active-border);
+  color: var(--chip-active-text);
 }
 
 /* ── Status badges ───────────────────────────────────────────────────────── */
@@ -590,8 +641,8 @@ a { color: inherit; text-decoration: none; }
   );
 }
 [data-theme="light"] .overview-insight-banner {
-  border-color: #c7d2fe;
-  background: linear-gradient(118deg, #eef2ff 0%, #f8fafc 55%, #ffffff 100%);
+  border-color: #a5b4fc;
+  background: linear-gradient(118deg, #dde3f5 0%, #eef0f3 55%, #eef0f3 100%);
 }
 .overview-insight-banner__icon {
   background: rgba(99, 102, 241, 0.16);

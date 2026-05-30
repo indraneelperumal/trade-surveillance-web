@@ -130,10 +130,10 @@ export function QueuePage() {
             key={key}
             type="button"
             onClick={() => setView(key)}
-            className={`rounded px-3 py-1.5 text-[12px] ${
+            className={`rounded px-3 py-1.5 text-[12px] font-medium ${
               view === key
                 ? "bg-[var(--color-accent-default)] text-white"
-                : "border border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)]"
+                : "border border-[var(--chip-border)] bg-[var(--chip-bg)] text-[var(--chip-text)] hover:bg-[var(--chip-hover-bg)]"
             }`}
           >
             {v.label}

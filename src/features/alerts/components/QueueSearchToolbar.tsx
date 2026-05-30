@@ -51,7 +51,7 @@ export function QueueSearchToolbar({
         placeholder="Search symbol (e.g. AAPL), trader ID, or alert…"
       />
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
           Severity
         </span>
         {severityOptions.map((opt) => (
@@ -66,7 +66,7 @@ export function QueueSearchToolbar({
       </div>
       {!hideStatus && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
             Status
           </span>
           {statusOptions.map((opt) => (
@@ -81,7 +81,7 @@ export function QueueSearchToolbar({
         </div>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
           Anomaly
         </span>
         <select

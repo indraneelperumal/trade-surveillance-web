@@ -82,14 +82,14 @@ export default function InvestigationsPage() {
   return (
     <Panel>
       <PanelHead title="Investigation queue" />
-      <div className="space-y-3 border-b border-[var(--color-border-tertiary)] px-4 py-3">
+      <div className="space-y-3 border-b border-[var(--color-border-tertiary)] bg-[var(--color-background-secondary)] px-4 py-3">
         <SearchInput
           value={search}
           onChange={setSearch}
           placeholder="Search symbol, trader, anomaly, rule, or verdict…"
         />
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
             Verdict
           </span>
           {VERDICT_FILTERS.map((opt) => (
