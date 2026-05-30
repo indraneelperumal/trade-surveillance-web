@@ -9,7 +9,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const VIEWS: Record<string, { label: string; params: Record<string, string | boolean> }> = {
-  all: { label: "All open work", params: { excludeClosed: true } },
+  // OPEN only — excludes IN_PROGRESS (agent running / awaiting review on case page)
+  open: { label: "Open work", params: { status: "open" } },
+  in_progress: { label: "In progress", params: { status: "in-progress" } },
   mine: { label: "My cases", params: { assignedTo: "me" } },
   unassigned: { label: "Unassigned high", params: { severity: "high", unassigned: true } },
   officer: { label: "Pending officer", params: { status: "pending_officer_review" } },
@@ -21,10 +23,11 @@ export function QueuePage() {
   const searchParams = useSearchParams();
   const { hasAccessToken, isLoading: authLoading } = useAuth();
 
-  const view = searchParams.get("view") ?? "all";
+  const viewParam = searchParams.get("view") ?? "open";
+  const view = viewParam === "all" ? "open" : viewParam;
   const offset = Number(searchParams.get("offset") ?? 0);
   const limit = 20;
-  const preset = VIEWS[view] ?? VIEWS.all;
+  const preset = VIEWS[view] ?? VIEWS.open;
 
   const query = useQuery({
     queryKey: queryKeys.alerts.list({ view, offset, limit, ...preset.params }),

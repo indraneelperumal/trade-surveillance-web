@@ -32,6 +32,7 @@ export default function InvestigationsPage() {
     queryKey: queryKeys.investigations.list({ offset: 0, limit: 30 }),
     queryFn: () => listInvestigations({ offset: 0, limit: 30 }),
     enabled,
+    refetchInterval: 5000,
   });
 
   return (
