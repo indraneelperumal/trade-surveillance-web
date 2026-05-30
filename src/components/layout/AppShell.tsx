@@ -11,7 +11,7 @@ type AppShellProps = {
 function SidebarFallback() {
   return (
     <aside
-      className="app-grid-bg"
+      className="sidebar-shell"
       style={{
         width: 210,
         flexShrink: 0,
@@ -24,13 +24,13 @@ function SidebarFallback() {
 
 export function AppShell({ title, actions, children }: AppShellProps) {
   return (
-    <div className="flex h-screen min-h-[600px] app-grid-bg">
+    <div className="flex h-screen min-h-[600px] bg-[var(--sidebar-bg)]">
       <Suspense fallback={<SidebarFallback />}>
         <SidebarNav />
       </Suspense>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar title={title} actions={actions} />
-        <main className="flex-1 overflow-y-auto p-5">{children}</main>
+        <main className="app-canvas flex-1 overflow-y-auto p-5">{children}</main>
       </div>
     </div>
   );

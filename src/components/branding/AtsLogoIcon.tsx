@@ -3,7 +3,7 @@ type AtsLogoIconProps = {
   className?: string;
 };
 
-/** Minimal mark: dark tile + neon “A” monogram */
+/** Minimal mark: charcoal tile + light “A” monogram */
 export function AtsLogoIcon({ size = 32, className }: AtsLogoIconProps) {
   return (
     <svg

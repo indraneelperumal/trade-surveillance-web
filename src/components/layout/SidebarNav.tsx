@@ -84,7 +84,7 @@ function NavLink({ item, badge }: { item: NavItem; badge?: string }) {
             width: 3,
             height: 18,
             borderRadius: "0 2px 2px 0",
-            background: "var(--brand-neon)",
+            background: "var(--color-accent-default)",
           }}
         />
       )}

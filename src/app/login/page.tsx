@@ -47,7 +47,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="login-shell app-grid-bg">
+    <div className="login-shell">
       <div className="login-card">
         <div style={{ marginBottom: 28 }}>
           <BrandMark variant="login" />
