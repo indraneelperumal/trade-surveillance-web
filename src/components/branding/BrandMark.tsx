@@ -13,7 +13,7 @@ export function BrandMark({ variant = "sidebar", className }: BrandMarkProps) {
 
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <AtsLogoIcon size={isSidebar ? 30 : 32} />
+      <AtsLogoIcon size={isSidebar ? 28 : 32} />
       {variant !== "compact" && (
         <div className="min-w-0 leading-none">
           <div
@@ -25,12 +25,13 @@ export function BrandMark({ variant = "sidebar", className }: BrandMarkProps) {
             <span>ATS</span>
             <sup
               className={cn(
-                "ml-px font-semibold not-italic",
-                isSidebar ? "text-[9px] text-[#58a6ff]" : "text-[10px] text-[#185FA5]",
+                "ml-0.5 font-normal not-italic leading-none",
+                isSidebar ? "text-[10px] text-[var(--sidebar-text)]" : "text-[11px] text-[#6B7280]",
               )}
-              style={{ top: "-0.45em" }}
+              style={{ top: "-0.35em" }}
+              aria-label="registered trademark"
             >
-              r
+              ®
             </sup>
           </div>
           {showTagline && (
