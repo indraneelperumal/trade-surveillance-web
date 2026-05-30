@@ -51,6 +51,16 @@
   --callout-warning-title:  #92400e;
   --callout-warning-body:   #78350f;
 
+  --verdict-escalate-bg:     #fdecec;
+  --verdict-escalate-text:   #a32d2d;
+  --verdict-escalate-border: #f4c7c7;
+  --verdict-monitor-bg:      #fff8e6;
+  --verdict-monitor-text:    #7d5a00;
+  --verdict-monitor-border:  #ffe8a3;
+  --verdict-dismiss-bg:      #edfaf3;
+  --verdict-dismiss-text:    #1a6640;
+  --verdict-dismiss-border:  #b3e8cc;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --border-radius-md: 6px;
@@ -92,6 +102,16 @@
   --callout-warning-border: #b45309;
   --callout-warning-title:  #fcd34d;
   --callout-warning-body:   #fde68a;
+
+  --verdict-escalate-bg:     #3b1212;
+  --verdict-escalate-text:   #fca5a5;
+  --verdict-escalate-border: #991b1b;
+  --verdict-monitor-bg:      #3b2800;
+  --verdict-monitor-text:    #fcd34d;
+  --verdict-monitor-border:  #b45309;
+  --verdict-dismiss-bg:      #0f2e1f;
+  --verdict-dismiss-text:    #86efac;
+  --verdict-dismiss-border:  #166534;
 }
 
 @theme inline {
@@ -144,6 +164,39 @@ a { color: inherit; text-decoration: none; }
 .sev-med   { background: var(--sev-med-bg);   color: var(--sev-med-text);   }
 .sev-low   { background: var(--sev-low-bg);   color: var(--sev-low-text);   }
 .sev-none  { background: var(--sev-none-bg);  color: var(--sev-none-text);  }
+
+/* ── Investigation verdict badges ─────────────────────────────────────────── */
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 3px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.verdict-escalate {
+  background: var(--verdict-escalate-bg);
+  color: var(--verdict-escalate-text);
+  border-color: var(--verdict-escalate-border);
+}
+.verdict-monitor {
+  background: var(--verdict-monitor-bg);
+  color: var(--verdict-monitor-text);
+  border-color: var(--verdict-monitor-border);
+}
+.verdict-dismiss {
+  background: var(--verdict-dismiss-bg);
+  color: var(--verdict-dismiss-text);
+  border-color: var(--verdict-dismiss-border);
+}
+.verdict-pending {
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-secondary);
+}
 
 /* ── Status badges ───────────────────────────────────────────────────────── */
 .status {
