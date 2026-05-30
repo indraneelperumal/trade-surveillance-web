@@ -47,39 +47,12 @@ function LoginForm() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--color-background-primary, #F9FAFB)",
-      }}
-    >
-      <div
-        style={{
-          width: 360,
-          background: "#fff",
-          border: "1px solid #E5E7EB",
-          borderRadius: 8,
-          padding: "32px 28px",
-        }}
-      >
+    <div className="login-shell app-grid-bg">
+      <div className="login-card">
         <div style={{ marginBottom: 28 }}>
           <BrandMark variant="login" />
-          <h1
-            style={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#111827",
-              margin: "16px 0 0",
-            }}
-          >
-            Sign in
-          </h1>
-          <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>
-            Agentic trade surveillance analyst platform
-          </p>
+          <h1 className="login-card__heading">Sign in</h1>
+          <p className="login-card__sub">Agentic trade surveillance analyst platform</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -90,7 +63,7 @@ function LoginForm() {
                 display: "block",
                 fontSize: 11,
                 fontWeight: 600,
-                color: "#374151",
+                color: "var(--color-text-secondary)",
                 marginBottom: 4,
               }}
             >
@@ -108,15 +81,16 @@ function LoginForm() {
                 boxSizing: "border-box",
                 padding: "8px 10px",
                 fontSize: 13,
-                border: "1px solid #D1D5DB",
+                border: "1px solid var(--color-border-secondary)",
                 borderRadius: 5,
                 outline: "none",
-                color: "#111827",
+                color: "var(--color-text-primary)",
+                background: "var(--color-background-secondary)",
               }}
               placeholder="analyst@ats.com"
             />
           </div>
-          <p style={{ fontSize: 10, color: "#6B7280", marginTop: 8, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 8, lineHeight: 1.5 }}>
             Demo: analyst@ats.com (Analyst) · compliance@ats.com (Compliance officer)
           </p>
 
@@ -127,7 +101,7 @@ function LoginForm() {
                 display: "block",
                 fontSize: 11,
                 fontWeight: 600,
-                color: "#374151",
+                color: "var(--color-text-secondary)",
                 marginBottom: 4,
               }}
             >
@@ -145,10 +119,11 @@ function LoginForm() {
                 boxSizing: "border-box",
                 padding: "8px 10px",
                 fontSize: 13,
-                border: "1px solid #D1D5DB",
+                border: "1px solid var(--color-border-secondary)",
                 borderRadius: 5,
                 outline: "none",
-                color: "#111827",
+                color: "var(--color-text-primary)",
+                background: "var(--color-background-secondary)",
               }}
               placeholder="••••••••"
             />
@@ -169,21 +144,7 @@ function LoginForm() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              marginTop: 4,
-              padding: "9px 0",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#fff",
-              background: isLoading ? "#9CA3AF" : "#111827",
-              border: "none",
-              borderRadius: 5,
-              cursor: isLoading ? "not-allowed" : "pointer",
-            }}
-          >
+          <button type="submit" disabled={isLoading} className="login-submit">
             {isLoading ? "Signing in…" : "Sign in"}
           </button>
         </form>
@@ -192,7 +153,7 @@ function LoginForm() {
           style={{
             marginTop: 20,
             fontSize: 11,
-            color: "#9CA3AF",
+            color: "var(--color-text-tertiary)",
             textAlign: "center",
           }}
         >

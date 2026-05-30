@@ -10,16 +10,29 @@
   --color-text-primary:         #0f172a;
   --color-text-secondary:       #64748b;
   --color-text-tertiary:        #94a3b8;
-  --color-accent-default:       #185fa5;
-  --color-accent-subtle:        #e6f1fb;
+  --color-accent-default:       #047857;
+  --color-accent-subtle:        #ecfdf5;
 
-  /* Sidebar — always dark regardless of theme */
-  --sidebar-bg:          #0f1117;
-  --sidebar-border:      #1e2530;
-  --sidebar-text:        #8b95a3;
-  --sidebar-text-active: #f0f2f5;
-  --sidebar-active-bg:   rgba(255,255,255,0.07);
-  --sidebar-hover-bg:    rgba(255,255,255,0.04);
+  /* App grid + brand (light) */
+  --app-grid-bg:                #f3f5f4;
+  --app-grid-line:              rgba(15, 23, 42, 0.07);
+  --app-grid-size:              20px;
+  --brand-neon:                 #047857;
+  --brand-neon-bright:          #059669;
+  --brand-neon-glow:            rgba(5, 150, 105, 0.2);
+  --brand-tagline:              #64748b;
+  --brand-logo-bg:              #ecfdf5;
+  --brand-logo-stroke:          #059669;
+  --brand-logo-fill:            #047857;
+  --brand-logo-cut:             #ecfdf5;
+
+  /* Sidebar — dark grid + neon brand */
+  --sidebar-bg:          #050505;
+  --sidebar-border:      #1a1f1a;
+  --sidebar-text:        #8b9a8f;
+  --sidebar-text-active: #d1fae5;
+  --sidebar-active-bg:   rgba(61, 255, 122, 0.08);
+  --sidebar-hover-bg:    rgba(255, 255, 255, 0.04);
 
   /* Severity */
   --sev-high-bg:    #fee2e2;
@@ -69,16 +82,28 @@
 
 /* ── Dark theme ──────────────────────────────────────────────────────────── */
 [data-theme="dark"] {
-  --color-background-primary:   #161b22;
-  --color-background-secondary: #1e2530;
-  --color-background-tertiary:  #0d1117;
-  --color-border-secondary:     #30363d;
-  --color-border-tertiary:      #21262d;
-  --color-text-primary:         #e6edf3;
-  --color-text-secondary:       #8b949e;
-  --color-text-tertiary:        #656d76;
-  --color-accent-default:       #58a6ff;
-  --color-accent-subtle:        #1f3a5f;
+  --color-background-primary:   #0f1412;
+  --color-background-secondary: #141a17;
+  --color-background-tertiary:  #050505;
+  --color-border-secondary:     #1f2a24;
+  --color-border-tertiary:      #151c18;
+  --color-text-primary:         #e8f5ef;
+  --color-text-secondary:       #8b9a8f;
+  --color-text-tertiary:        #5c6b62;
+  --color-accent-default:       #3dff7a;
+  --color-accent-subtle:        #0f2a1a;
+
+  --app-grid-bg:                #050505;
+  --app-grid-line:              rgba(61, 255, 122, 0.07);
+  --app-grid-size:              20px;
+  --brand-neon:                 #3dff7a;
+  --brand-neon-bright:          #22ff88;
+  --brand-neon-glow:            rgba(61, 255, 122, 0.45);
+  --brand-tagline:              #6b8f78;
+  --brand-logo-bg:              #0a0f0c;
+  --brand-logo-stroke:          #3dff7a;
+  --brand-logo-fill:            #3dff7a;
+  --brand-logo-cut:             #0a0f0c;
 
   --sev-high-bg:   #3b1212;
   --sev-high-text: #fca5a5;
@@ -126,13 +151,155 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--color-background-tertiary);
   color: var(--color-text-primary);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   font-size: 14px;
+  background-color: var(--app-grid-bg);
+  background-image:
+    linear-gradient(var(--app-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--app-grid-line) 1px, transparent 1px);
+  background-size: var(--app-grid-size) var(--app-grid-size);
+}
+
+.app-grid-bg {
+  background-color: var(--app-grid-bg);
+  background-image:
+    linear-gradient(var(--app-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--app-grid-line) 1px, transparent 1px);
+  background-size: var(--app-grid-size) var(--app-grid-size);
 }
 
 a { color: inherit; text-decoration: none; }
+
+/* ── ATS brand mark ──────────────────────────────────────────────────────── */
+.brand-mark__title {
+  display: flex;
+  align-items: baseline;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--brand-neon);
+  text-shadow: 0 0 28px var(--brand-neon-glow);
+}
+.brand-mark__reg {
+  margin-left: 2px;
+  font-size: 0.62em;
+  font-weight: 500;
+  color: var(--brand-tagline);
+  text-shadow: none;
+}
+.brand-mark__tagline {
+  margin: 4px 0 0;
+  max-width: 9.5rem;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: var(--brand-tagline);
+}
+.brand-mark--sidebar .brand-mark__title {
+  font-size: 15px;
+}
+.brand-mark--login .brand-mark__title {
+  font-size: 16px;
+}
+.ats-logo-icon .ats-logo-bg {
+  fill: var(--brand-logo-bg);
+  stroke: var(--brand-logo-stroke);
+}
+.ats-logo-icon .ats-logo-fill {
+  fill: var(--brand-logo-fill);
+}
+.ats-logo-icon .ats-logo-cut {
+  fill: var(--brand-logo-cut);
+}
+.ats-logo-icon {
+  filter: drop-shadow(0 0 5px var(--brand-neon-glow));
+}
+
+/* Sidebar: always dark grid + neon brand (both themes) */
+.sidebar-shell {
+  background-color: var(--sidebar-bg);
+  background-image:
+    linear-gradient(rgba(61, 255, 122, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(61, 255, 122, 0.07) 1px, transparent 1px);
+  background-size: var(--app-grid-size) var(--app-grid-size);
+}
+.sidebar-shell .brand-mark__title {
+  color: #3dff7a;
+  text-shadow: 0 0 28px rgba(61, 255, 122, 0.45);
+}
+.sidebar-shell .brand-mark__reg {
+  color: #6b8f78;
+}
+.sidebar-shell .brand-mark__tagline {
+  color: #6b8f78;
+}
+.sidebar-shell .ats-logo-icon {
+  --brand-logo-bg: #0a0f0c;
+  --brand-logo-stroke: #3dff7a;
+  --brand-logo-fill: #3dff7a;
+  --brand-logo-cut: #0a0f0c;
+  --brand-neon-glow: rgba(61, 255, 122, 0.45);
+  filter: drop-shadow(0 0 6px rgba(61, 255, 122, 0.45));
+}
+
+/* ── Login shell ─────────────────────────────────────────────────────────── */
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-card {
+  width: min(100%, 360px);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  padding: 32px 28px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+}
+[data-theme="dark"] .login-card {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(61, 255, 122, 0.06);
+}
+.login-card__heading {
+  margin: 16px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.login-card__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.login-submit {
+  margin-top: 4px;
+  padding: 9px 0;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: #041108;
+  background: var(--brand-neon);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--brand-neon-glow);
+  transition: opacity 0.15s, box-shadow 0.15s;
+}
+.login-submit:hover:not(:disabled) {
+  opacity: 0.92;
+  box-shadow: 0 0 28px var(--brand-neon-glow);
+}
+.login-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+[data-theme="light"] .login-submit {
+  color: #fff;
+  background: var(--brand-neon-bright);
+}
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {

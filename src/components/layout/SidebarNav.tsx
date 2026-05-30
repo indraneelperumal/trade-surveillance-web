@@ -84,7 +84,7 @@ function NavLink({ item, badge }: { item: NavItem; badge?: string }) {
             width: 3,
             height: 18,
             borderRadius: "0 2px 2px 0",
-            background: "var(--color-accent-default)",
+            background: "var(--brand-neon)",
           }}
         />
       )}
@@ -127,13 +127,13 @@ export function SidebarNav() {
 
   return (
     <aside
+      className="sidebar-shell"
       style={{
         display: "flex",
         flexDirection: "column",
         width: 210,
         flexShrink: 0,
         height: "100%",
-        background: "var(--sidebar-bg)",
         borderRight: "1px solid var(--sidebar-border)",
       }}
     >
