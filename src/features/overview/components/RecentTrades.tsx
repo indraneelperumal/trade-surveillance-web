@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/Card";
+import { formatDateTime } from "@/lib/utils";
 import type { Trade } from "@/types/domain";
 
 type Props = {
@@ -37,7 +38,7 @@ export function RecentTrades({ trades }: Props) {
                   <td className="py-2 pr-3">{t.offHours ? "Yes" : "No"}</td>
                   <td className="py-2 pr-3">{t.otc ? "Yes" : "No"}</td>
                   <td className="py-2 font-mono text-[11px] text-[var(--color-text-secondary)]">
-                    {t.tradedAt}
+                    {formatDateTime(t.tradedAt)}
                   </td>
                 </tr>
               ))}

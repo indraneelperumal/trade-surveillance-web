@@ -9,6 +9,7 @@ import {
 } from "@/features/alerts/adapters/alertView";
 import { AlertActionsForm, type AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
 import { InvestigationRunningAnimation } from "@/features/alerts/components/InvestigationRunningAnimation";
+import { InvestigationUnavailableNotice } from "@/features/alerts/components/InvestigationUnavailableNotice";
 import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
 import { NotesTimeline } from "@/features/alerts/components/NotesTimeline";
 import { ShapFeatureBar } from "@/features/alerts/components/ShapFeatureBar";
@@ -183,16 +184,11 @@ export function AlertDetailPanel({
               Run AI Investigation
             </button>
           ) : (
-            <div style={{
-              padding: "10px 14px", borderRadius: 8, fontSize: 12,
-              background: "var(--color-background-secondary)",
-              color: "var(--color-text-tertiary)",
-              border: "1px solid var(--color-border-tertiary)",
-            }}>
-              {alert.status === "closed"
-                ? "Alert is closed — no investigation needed."
-                : "Investigation not available for this severity level."}
-            </div>
+            <InvestigationUnavailableNotice
+              compact
+              status={alert.status}
+              severity={alert.severity}
+            />
           )}
         </div>
 

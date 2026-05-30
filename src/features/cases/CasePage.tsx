@@ -15,12 +15,14 @@ import {
 } from "@/lib/api/endpoints/alertActions";
 import { InvestigationRunningAnimation } from "@/features/alerts/components/InvestigationRunningAnimation";
 import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
+import { InvestigationUnavailableNotice } from "@/features/alerts/components/InvestigationUnavailableNotice";
 import { CaseNavigator } from "@/features/cases/CaseNavigator";
 import { getCase } from "@/lib/api/endpoints/cases";
 import { listInvestigations, triggerInvestigation } from "@/lib/api/endpoints/investigations";
 import { listUsers } from "@/lib/api/endpoints/users";
 import { anomalyLabel, DISPOSITION_OPTIONS, statusLabelV2 } from "@/lib/domain/labels";
 import { queryKeys } from "@/lib/api/queryKeys";
+import { formatDateTime } from "@/lib/utils";
 import type { InvestigationPresentation } from "@/lib/api/types/case";
 import { ShapFeatureBar } from "@/features/alerts/components/ShapFeatureBar";
 import {
@@ -204,7 +206,7 @@ export function CasePage({ alertId }: { alertId: string }) {
           </h2>
           {trade ? (
             <dl className="space-y-2 text-[12px]">
-              <Row label="Time" value={new Date(trade.tradedAt).toLocaleString()} />
+              <Row label="Time" value={formatDateTime(trade.tradedAt)} />
               <Row label="Side / price" value={`${trade.side} @ ${trade.price}`} />
               <Row label="Volume" value={String(trade.volume)} />
               {trade.tradeValue != null && <Row label="Notional" value={`$${trade.tradeValue.toLocaleString()}`} />}
@@ -250,6 +252,16 @@ export function CasePage({ alertId }: { alertId: string }) {
             >
               Run AI investigation
             </button>
+          )}
+          {!hasInvestigation && !perms.canRunAi && !isAgentRunning && (
+            <InvestigationUnavailableNotice status={alert.status} severity={alert.severity} />
+          )}
+          {runMut.isError && (
+            <p className="text-[11px] text-[#A32D2D]">
+              {runMut.error instanceof Error
+                ? runMut.error.message
+                : "Could not start investigation. Contact your compliance officer if this persists."}
+            </p>
           )}
           {caseInvestigation && (
             <InvestigationPanel

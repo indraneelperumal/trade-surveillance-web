@@ -1,4 +1,10 @@
-import type { Alert, Severity, Trade, AlertStatus } from "@/types/domain";
+import type { Alert, AlertStatus, Severity, Trade } from "@/types/domain";
+import type {
+  AlertCase,
+  AssigneeUser,
+  CaseBundle,
+  TradeCase,
+} from "@/lib/api/types/case";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -35,15 +41,22 @@ export function normalizeStatus(raw: unknown): AlertStatus {
   return "open";
 }
 
+function normalizeTimestamp(raw: unknown): string {
+  if (typeof raw === "string" && raw.trim()) return raw;
+  if (raw instanceof Date && !Number.isNaN(raw.getTime())) return raw.toISOString();
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    const date = new Date(raw);
+    if (!Number.isNaN(date.getTime())) return date.toISOString();
+  }
+  return "";
+}
+
 export function normalizeTrade(raw: UnknownRecord): Trade {
   const tradeId = asString(raw.tradeId ?? raw.id);
-  const ts = raw.timestamp ?? raw.tradedAt;
   const tradedAt =
-    typeof ts === "string"
-      ? ts
-      : ts instanceof Date
-        ? ts.toISOString()
-        : asString(ts);
+    normalizeTimestamp(raw.timestamp) ||
+    normalizeTimestamp(raw.tradedAt) ||
+    normalizeTimestamp(raw.tradeDate);
 
   const sideRaw = asString(raw.side).toUpperCase();
   const side = sideRaw === "SELL" ? "SELL" : "BUY";
@@ -109,5 +122,63 @@ export function normalizeAlert(raw: UnknownRecord): Alert {
       raw.scoringModelRunId != null ? asString(raw.scoringModelRunId) : undefined,
     scoredAt: raw.scoredAt != null ? asString(raw.scoredAt) : undefined,
     scoringMode: raw.scoringMode != null ? asString(raw.scoringMode) : undefined,
+  };
+}
+
+function normalizeAssigneeUser(raw: unknown): AssigneeUser | null | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const record = raw as UnknownRecord;
+  const id = asString(record.id);
+  if (!id) return undefined;
+  return {
+    id,
+    email: asString(record.email),
+    displayName: record.displayName != null ? asString(record.displayName) : null,
+  };
+}
+
+export function normalizeTradeCase(raw: UnknownRecord): TradeCase {
+  return {
+    ...normalizeTrade(raw),
+    spreadBps: asNumber(raw.spreadBps),
+    relativeSpread: asNumber(raw.relativeSpread),
+    isBlockTrade: asBool(raw.isBlockTrade),
+    traderDesk: raw.traderDesk != null ? asString(raw.traderDesk) : null,
+    traderRegion: raw.traderRegion != null ? asString(raw.traderRegion) : null,
+    clientType: raw.clientType != null ? asString(raw.clientType) : null,
+    clientMifidCategory:
+      raw.clientMifidCategory != null ? asString(raw.clientMifidCategory) : null,
+    counterpartyName: raw.counterpartyName != null ? asString(raw.counterpartyName) : null,
+  };
+}
+
+export function normalizeCaseBundle(raw: UnknownRecord): CaseBundle {
+  const alertRaw = (raw.alert ?? {}) as UnknownRecord;
+  const alert: AlertCase = {
+    ...normalizeAlert(alertRaw),
+    ageHours: Number(alertRaw.ageHours) || 0,
+    isStale: asBool(alertRaw.isStale),
+    assigneeUser: normalizeAssigneeUser(alertRaw.assigneeUser),
+  };
+
+  const tradeRaw = raw.trade;
+  const trade =
+    tradeRaw && typeof tradeRaw === "object"
+      ? normalizeTradeCase(tradeRaw as UnknownRecord)
+      : null;
+
+  return {
+    alert,
+    trade,
+    investigation: (raw.investigation as CaseBundle["investigation"]) ?? null,
+    notes: Array.isArray(raw.notes) ? (raw.notes as CaseBundle["notes"]) : [],
+    permissions: (raw.permissions as CaseBundle["permissions"]) ?? {
+      canAssign: false,
+      canTake: false,
+      canClose: false,
+      canEscalate: false,
+      canRunAi: false,
+      canApproveInvestigation: false,
+    },
   };
 }

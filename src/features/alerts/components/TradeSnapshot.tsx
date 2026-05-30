@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Alert, Trade } from "@/types/domain";
+import { formatDateTime } from "@/lib/utils";
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -32,7 +33,10 @@ export function TradeSnapshot({
       ) : null}
       <Row label="Volume" value={trade.volume.toLocaleString()} />
       <Row label="Side" value={trade.side} />
-      <Row label="Timestamp" value={<span className="mono text-[11px]">{trade.tradedAt}</span>} />
+      <Row
+        label="Timestamp"
+        value={<span className="mono text-[11px]">{formatDateTime(trade.tradedAt)}</span>}
+      />
       <Row label="Off-hours" value={trade.offHours ? "Yes" : "No"} />
       <Row label="OTC" value={trade.otc ? "Yes" : "No"} />
       {alert && typeof alert.anomalyScore === "number" ? (
