@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/branding/BrandMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -65,46 +66,19 @@ function LoginForm() {
         }}
       >
         <div style={{ marginBottom: 28 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 8,
-            }}
-          >
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "#1A6640",
-              }}
-            />
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#6B7280",
-              }}
-            >
-              Sentinel
-            </span>
-          </div>
+          <BrandMark variant="login" />
           <h1
             style={{
               fontSize: 18,
               fontWeight: 600,
               color: "#111827",
-              margin: 0,
+              margin: "16px 0 0",
             }}
           >
             Sign in
           </h1>
           <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>
-            Trade surveillance analyst platform
+            Agentic trade surveillance analyst platform
           </p>
         </div>
 
@@ -139,11 +113,11 @@ function LoginForm() {
                 outline: "none",
                 color: "#111827",
               }}
-              placeholder="analyst@demo.sentinel"
+              placeholder="analyst@ats.com"
             />
           </div>
           <p style={{ fontSize: 10, color: "#6B7280", marginTop: 8, lineHeight: 1.5 }}>
-            Demo: analyst@demo.sentinel (Analyst) · officer@demo.sentinel (Officer)
+            Demo: analyst@ats.com (Analyst) · compliance@ats.com (Compliance officer)
           </p>
 
           <div>

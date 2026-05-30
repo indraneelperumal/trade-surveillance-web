@@ -11,7 +11,7 @@ import {
   verdictLabel,
 } from "@/features/investigations/adapters/investigationView";
 import type { InvestigationListItem } from "@/features/investigations/hooks/useInvestigationListContext";
-import { anomalyLabel } from "@/lib/domain/labels";
+import { caseDetailHref } from "@/lib/navigation/caseReturn";
 import { formatDateTime, formatRelativeDate } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
@@ -81,7 +81,7 @@ export function InvestigationQueueRow({ item }: { item: InvestigationListItem })
 
   return (
     <Link
-      href={`/cases/${investigation.alertId}`}
+      href={caseDetailHref(investigation.alertId, "investigations")}
       className="group flex gap-0 border-b border-[var(--color-border-tertiary)] hover:bg-[var(--color-background-secondary)]"
     >
       <div className="w-1 shrink-0 self-stretch" style={{ background: stripe }} aria-hidden />

@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sentinel Trade Surveillance",
-  description: "Trade surveillance analyst dashboard",
+  title: "ATS — Agentic Trade Surveillance",
+  description: "Agentic trade surveillance analyst platform",
 };
 
 export default function RootLayout({

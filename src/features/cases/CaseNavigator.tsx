@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { caseNavigationQuery } from "@/lib/navigation/caseReturn";
 import { useMemo } from "react";
 
 const VIEWS: Record<string, Record<string, string | boolean>> = {
@@ -76,7 +77,7 @@ export function CaseNavigator({ alertId, queueContext }: CaseNavigatorProps) {
   const idx = items.findIndex((a) => a.id === alertId);
   const prev = idx > 0 ? items[idx - 1] : null;
   const next = idx >= 0 && idx < items.length - 1 ? items[idx + 1] : null;
-  const ctx = queueContext ? `?${queueContext}` : "";
+  const ctx = queueContext ? `?${caseNavigationQuery(queueContext)}` : "";
 
   if (listQuery.isPending || idx < 0) return null;
 

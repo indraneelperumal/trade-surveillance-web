@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/branding/BrandMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
@@ -10,7 +11,6 @@ import { roleLabel } from "@/lib/domain/labels";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle,
   FileSearch,
   LayoutDashboard,
   ListOrdered,
@@ -20,7 +20,8 @@ import {
   UserCog,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { parseCaseReturnOrigin } from "@/lib/navigation/caseReturn";
 
 type NavItem = {
   label: string;
@@ -42,7 +43,16 @@ const secondaryItems: NavItem[] = [
 
 function NavLink({ item, badge }: { item: NavItem; badge?: string }) {
   const pathname = usePathname();
-  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  const active =
+    pathname.startsWith("/cases/")
+      ? parseCaseReturnOrigin(from) === "investigations"
+        ? item.href === "/investigations"
+        : parseCaseReturnOrigin(from) === "alerts"
+          ? item.href === "/alerts"
+          : item.href === "/queue"
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
   const Icon = item.icon;
 
   return (
@@ -127,31 +137,8 @@ export function SidebarNav() {
         borderRight: "1px solid var(--sidebar-border)",
       }}
     >
-      <div style={{ padding: "18px 22px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-        <div
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 6,
-            background: "var(--color-accent-default)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <AlertTriangle size={13} color="#fff" strokeWidth={2.5} />
-        </div>
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            color: "var(--sidebar-text-active)",
-            textTransform: "uppercase",
-          }}
-        >
-          Sentinel
-        </span>
+      <div style={{ padding: "16px 18px 12px" }}>
+        <BrandMark variant="sidebar" />
       </div>
 
       <div style={{ height: 1, background: "var(--sidebar-border)", margin: "0 14px 8px" }} />

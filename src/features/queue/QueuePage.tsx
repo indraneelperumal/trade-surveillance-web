@@ -23,17 +23,7 @@ const VIEWS: Record<string, { label: string; params: Record<string, string | boo
   stale: { label: "Stale >24h", params: { stale: true } },
 };
 
-function buildQueueContext(params: URLSearchParams): string {
-  const keep = ["view", "q", "severity", "status", "anomalyType", "symbol", "offset"];
-  const out = new URLSearchParams();
-  for (const k of keep) {
-    const v = params.get(k);
-    if (v) out.set(k, v);
-  }
-  return out.toString();
-}
-
-export function QueuePage() {
+import { caseDetailHref } from "@/lib/navigation/caseReturn";
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasAccessToken, isLoading: authLoading } = useAuth();
@@ -130,7 +120,6 @@ export function QueuePage() {
     [query.data?.items, filters.q],
   );
   const total = query.data?.total ?? 0;
-  const queueContext = buildQueueContext(searchParams);
 
   return (
     <div className="flex flex-col gap-4">
@@ -169,8 +158,7 @@ export function QueuePage() {
           <AlertQueueTable
             alerts={items}
             onSelect={(id) => {
-              const ctx = queueContext ? `?${queueContext}` : "";
-              router.push(`/cases/${id}${ctx}`);
+              router.push(caseDetailHref(id, "queue", searchParams));
             }}
           />
           <div className="flex justify-between text-[12px]">

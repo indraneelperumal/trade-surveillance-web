@@ -28,7 +28,7 @@ export function DashboardFrame({ children }: { children: ReactNode }) {
   });
 
   const key = Object.keys(topbarByPath).find((p) => pathname.startsWith(p));
-  const topbar = (key && topbarByPath[key]) || { title: "Sentinel" };
+  const topbar = (key && topbarByPath[key]) || { title: "Agentic Trade Surveillance" };
   const highCount = highSeverityQuery.data?.total ?? 0;
 
   const actions = (

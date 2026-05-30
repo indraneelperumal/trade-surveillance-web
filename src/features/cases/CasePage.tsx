@@ -23,6 +23,11 @@ import { listUsers } from "@/lib/api/endpoints/users";
 import { anomalyLabel, DISPOSITION_OPTIONS, statusLabelV2 } from "@/lib/domain/labels";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { formatDateTime } from "@/lib/utils";
+import {
+  buildQueueContext,
+  caseBackLink,
+  parseCaseReturnOrigin,
+} from "@/lib/navigation/caseReturn";
 import type { InvestigationPresentation } from "@/lib/api/types/case";
 import { ShapFeatureBar } from "@/features/alerts/components/ShapFeatureBar";
 import {
@@ -33,7 +38,9 @@ import {
 
 export function CasePage({ alertId }: { alertId: string }) {
   const searchParams = useSearchParams();
-  const queueContext = searchParams.toString();
+  const returnOrigin = parseCaseReturnOrigin(searchParams.get("from"));
+  const queueContext = returnOrigin === "queue" ? buildQueueContext(searchParams) : "";
+  const back = caseBackLink(searchParams);
   const queryClient = useQueryClient();
   const { hasAccessToken, isLoading: authLoading } = useAuth();
   const { isOfficer } = useRole();
@@ -155,7 +162,7 @@ export function CasePage({ alertId }: { alertId: string }) {
   if (caseQuery.isError || !bundle) {
     return (
       <div className="p-6 text-[13px] text-[#A32D2D]">
-        Case unavailable. <Link href="/queue">Back to queue</Link>
+        Case unavailable. <Link href={back.href}>Back to {back.label.toLowerCase()}</Link>
       </div>
     );
   }
@@ -172,8 +179,8 @@ export function CasePage({ alertId }: { alertId: string }) {
       {queueContext ? <CaseNavigator alertId={alertId} queueContext={queueContext} /> : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/queue" className="text-[11px] text-[var(--color-text-secondary)] hover:underline">
-            ← Queue
+          <Link href={back.href} className="text-[11px] text-[var(--color-text-secondary)] hover:underline">
+            ← {back.label}
           </Link>
           <h1 className="mt-1 text-[20px] font-bold">{alert.symbol}</h1>
           <p className="mono text-[11px] text-[var(--color-text-tertiary)]">{alert.id}</p>
@@ -274,7 +281,7 @@ export function CasePage({ alertId }: { alertId: string }) {
           {!caseInvestigation && listInvestigation && (
             <InvestigationSummary investigation={listInvestigation} />
           )}
-          {hasInvestigation && (
+          {hasInvestigation && returnOrigin !== "investigations" && (
             <Link
               href="/investigations"
               className="block text-center text-[11px] text-[var(--color-accent-default)] hover:underline"
