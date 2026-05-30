@@ -82,7 +82,7 @@ export function CaseNavigator({ alertId, queueContext }: CaseNavigatorProps) {
   if (listQuery.isPending || idx < 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--color-border-tertiary)] bg-[var(--color-background-secondary)] px-3 py-2 text-[11px]">
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] border border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)] px-3 py-2 text-[11px]">
       {prev ? (
         <Link
           href={`/cases/${prev.id}${ctx}`}

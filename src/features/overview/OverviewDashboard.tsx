@@ -1,10 +1,10 @@
 import type { OverviewMetrics } from "@/lib/api/endpoints/metrics";
-import { AnomalyRankTable } from "@/features/overview/components/AnomalyRankTable";
-import { DistributionStrip } from "@/features/overview/components/DistributionStrip";
+import { AnomalyCompositionChart } from "@/features/overview/components/AnomalyCompositionChart";
 import { OpenCasesSummary } from "@/features/overview/components/OpenCasesSummary";
 import { OpsMetricTiles } from "@/features/overview/components/OpsMetricTiles";
 import { OverviewHero } from "@/features/overview/components/OverviewHero";
-import { TopSymbolsTable } from "@/features/overview/components/TopSymbolsTable";
+import { StatusSeverityCharts } from "@/features/overview/components/StatusSeverityCharts";
+import { TopSymbolsChart } from "@/features/overview/components/TopSymbolsChart";
 import { WorkloadPanel } from "@/features/overview/components/WorkloadPanel";
 
 export type OverviewDashboardProps = {
@@ -87,13 +87,14 @@ export function OverviewDashboard({
         />
       </div>
 
-      <TopSymbolsTable rows={metrics.topSymbolsByAlerts} totalAlerts={metrics.totalAlerts} />
-
-      <AnomalyRankTable alertsByAnomalyType={metrics.alertsByAnomalyType} />
+      <div className="grid gap-3 xl:grid-cols-2">
+        <TopSymbolsChart rows={metrics.topSymbolsByAlerts} totalAlerts={metrics.totalAlerts} />
+        <AnomalyCompositionChart alertsByAnomalyType={metrics.alertsByAnomalyType} />
+      </div>
 
       <div className="grid gap-3 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <DistributionStrip
+          <StatusSeverityCharts
             alertsByStatus={metrics.alertsByStatus}
             openAlertsBySeverity={metrics.openAlertsBySeverity}
           />

@@ -600,3 +600,44 @@ a { color: inherit; text-decoration: none; }
 [data-theme="light"] .overview-insight-banner__icon {
   background: #e0e7ff;
 }
+
+/* ── Overview chart animations ───────────────────────────────────────────── */
+@keyframes overview-bar-grow {
+  from {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+.overview-chart-bar__fill {
+  transform-origin: left center;
+  animation: overview-bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .overview-chart-bar__fill {
+    animation: none;
+  }
+}
+.overview-donut-segment {
+  opacity: 0;
+  animation: overview-donut-fade 0.4s ease forwards;
+}
+.overview-donut-segment:nth-child(2) { animation-delay: 0.05s; }
+.overview-donut-segment:nth-child(3) { animation-delay: 0.1s; }
+.overview-donut-segment:nth-child(4) { animation-delay: 0.15s; }
+.overview-donut-segment:nth-child(5) { animation-delay: 0.2s; }
+.overview-donut-segment:nth-child(6) { animation-delay: 0.25s; }
+.overview-donut-segment:nth-child(7) { animation-delay: 0.3s; }
+@keyframes overview-donut-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overview-donut-segment {
+    animation: none;
+    opacity: 1;
+  }
+}

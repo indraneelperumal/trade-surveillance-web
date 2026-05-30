@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Panel } from "@/components/ui/Panel";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCasePermissions, useRole } from "@/hooks/usePermissions";
 import {
@@ -177,37 +178,39 @@ export function CasePage({ alertId }: { alertId: string }) {
   return (
     <div className="flex flex-col gap-4">
       {queueContext ? <CaseNavigator alertId={alertId} queueContext={queueContext} /> : null}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href={back.href} className="text-[11px] text-[var(--color-text-secondary)] hover:underline">
-            ← {back.label}
-          </Link>
-          <h1 className="mt-1 text-[20px] font-bold">{alert.symbol}</h1>
-          <p className="mono text-[11px] text-[var(--color-text-tertiary)]">{alert.id}</p>
-          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-            <span className={`sev sev-${alert.severity === "med" ? "med" : alert.severity}`}>
-              {severityLabel(alert.severity)}
-            </span>
-            <span className={`status ${statusVariant(alert.status)}`}>
-              {statusLabelV2(alert.status)}
-            </span>
-            <span className="rounded border border-[var(--color-border-tertiary)] px-2 py-0.5 capitalize">
-              {anomalyLabel(alert.anomalyType)}
-            </span>
-            {alert.isStale && (
-              <span className="rounded bg-[#FFF8E6] px-2 py-0.5 text-[#7D5A00]">Stale &gt;24h</span>
-            )}
+      <Panel className="p-4 md:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <Link href={back.href} className="text-[11px] text-[var(--color-text-secondary)] hover:underline">
+              ← {back.label}
+            </Link>
+            <h1 className="mt-1 text-[20px] font-bold">{alert.symbol}</h1>
+            <p className="mono text-[11px] text-[var(--color-text-tertiary)]">{alert.id}</p>
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+              <span className={`sev sev-${alert.severity === "med" ? "med" : alert.severity}`}>
+                {severityLabel(alert.severity)}
+              </span>
+              <span className={`status ${statusVariant(alert.status)}`}>
+                {statusLabelV2(alert.status)}
+              </span>
+              <span className="rounded border border-[var(--color-border-tertiary)] px-2 py-0.5 capitalize">
+                {anomalyLabel(alert.anomalyType)}
+              </span>
+              {alert.isStale && (
+                <span className="rounded bg-[#FFF8E6] px-2 py-0.5 text-[#7D5A00]">Stale &gt;24h</span>
+              )}
+            </div>
+          </div>
+          <div className="text-right text-[12px] text-[var(--color-text-secondary)]">
+            <div>Assignee: {alert.assigneeUser?.email ?? alert.assignee ?? "Unassigned"}</div>
+            <div>Age: {alert.ageHours?.toFixed(1)}h</div>
           </div>
         </div>
-        <div className="text-right text-[12px] text-[var(--color-text-secondary)]">
-          <div>Assignee: {alert.assigneeUser?.email ?? alert.assignee ?? "Unassigned"}</div>
-          <div>Age: {alert.ageHours?.toFixed(1)}h</div>
-        </div>
-      </div>
+      </Panel>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {/* Left — trade + ML */}
-        <div className="space-y-4 rounded-lg border border-[var(--color-border-tertiary)] p-4">
+        <Panel className="space-y-4 p-4 md:p-5">
           <h2 className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-text-tertiary)]">
             Trade &amp; market context
           </h2>
@@ -237,12 +240,12 @@ export function CasePage({ alertId }: { alertId: string }) {
               Explainability unavailable — use anomaly type and trade context.
             </p>
           )}
-        </div>
+        </Panel>
 
         {/* Center — investigation */}
-        <div
+        <Panel
           ref={investigationRef}
-          className="space-y-4 rounded-lg border border-[var(--color-border-tertiary)] p-4 xl:col-span-1"
+          className="space-y-4 p-4 md:p-5 xl:col-span-1"
         >
           <h2 className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-text-tertiary)]">
             AI investigation
@@ -289,10 +292,10 @@ export function CasePage({ alertId }: { alertId: string }) {
               Also listed under Investigations →
             </Link>
           )}
-        </div>
+        </Panel>
 
         {/* Right — workflow */}
-        <div className="space-y-4 rounded-lg border border-[var(--color-border-tertiary)] p-4">
+        <Panel className="space-y-4 p-4 md:p-5">
           <h2 className="text-[11px] font-bold uppercase tracking-wide text-[var(--color-text-tertiary)]">
             Workflow
           </h2>
@@ -396,7 +399,7 @@ export function CasePage({ alertId }: { alertId: string }) {
               ))
             )}
           </ul>
-        </div>
+        </Panel>
       </div>
     </div>
   );
