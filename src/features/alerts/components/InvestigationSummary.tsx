@@ -167,9 +167,7 @@ export function InvestigationSummary({
       {/* Data gaps */}
       {investigation.dataGaps && (
         <Section label="Data gaps flagged">
-          <p className="leading-5 text-[var(--color-text-secondary)]">
-            {investigation.dataGaps}
-          </p>
+          <div className="callout-warning text-[12px] leading-5">{investigation.dataGaps}</div>
         </Section>
       )}
 

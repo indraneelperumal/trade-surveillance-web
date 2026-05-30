@@ -414,7 +414,7 @@ function InvestigationPanel({
           <p className="mt-1 text-[var(--color-text-secondary)]">{h.verdictHint}</p>
         )}
         {isDismiss && (
-          <p className="mt-2 rounded bg-[#FFF8E6] px-2 py-1 text-[11px] text-[#7D5A00]">
+          <p className="callout-warning mt-2 px-2 py-1 text-[11px]">
             AI suggests dismiss — this is not a final disposition. Officer must close the case.
           </p>
         )}
@@ -437,16 +437,27 @@ function InvestigationPanel({
           key={sec.id}
           className={
             sec.emphasis === "warning"
-              ? "rounded border border-[#FFE8A3] bg-[#FFF8E6] p-3"
+              ? "callout-warning"
               : "rounded border border-[var(--color-border-tertiary)] p-3"
           }
         >
-          <div className="mb-1 text-[10px] font-bold uppercase text-[var(--color-text-tertiary)]">
+          <div
+            className={`mb-1 text-[10px] font-bold uppercase ${
+              sec.emphasis === "warning"
+                ? "callout-warning__label"
+                : "text-[var(--color-text-tertiary)]"
+            }`}
+          >
             {sec.title}
           </div>
           {sec.body && <p className="leading-5">{sec.body}</p>}
           {sec.bullets?.map((b, i) => (
-            <p key={i} className="mt-1 leading-5 text-[var(--color-text-secondary)]">
+            <p
+              key={i}
+              className={`mt-1 leading-5 ${
+                sec.emphasis === "warning" ? "" : "text-[var(--color-text-secondary)]"
+              }`}
+            >
               • {b}
             </p>
           ))}

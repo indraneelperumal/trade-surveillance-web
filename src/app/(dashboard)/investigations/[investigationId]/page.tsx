@@ -183,10 +183,10 @@ export default function InvestigationDetailPage({
 
         {investigation.dataGaps ? (
           <div className="text-[12px]">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
-              Data gaps flagged
+            <div className="callout-warning__label mb-1 text-[10px] font-semibold uppercase tracking-wide">
+              Data gaps &amp; limitations
             </div>
-            <p className="leading-5 text-[var(--color-text-secondary)]">{investigation.dataGaps}</p>
+            <div className="callout-warning leading-5">{investigation.dataGaps}</div>
           </div>
         ) : null}
 
