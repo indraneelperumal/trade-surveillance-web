@@ -1,6 +1,8 @@
 "use client";
 
 import { Panel, PanelHead } from "@/components/ui/Panel";
+import { SearchInput } from "@/components/ui/SearchInput";
+import { Chip } from "@/components/ui/Chip";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/client";
 import { listInvestigations } from "@/lib/api/endpoints/investigations";
@@ -8,6 +10,14 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { formatRelativeDate } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useMemo, useState } from "react";
+
+const VERDICT_FILTERS = [
+  { value: "all", label: "All verdicts" },
+  { value: "ESCALATE", label: "Escalate" },
+  { value: "MONITOR", label: "Monitor" },
+  { value: "DISMISS", label: "Dismiss" },
+];
 
 function SkeletonRow() {
   return (
@@ -27,17 +37,54 @@ function SkeletonRow() {
 export default function InvestigationsPage() {
   const { hasAccessToken, isLoading: authLoading } = useAuth();
   const enabled = !authLoading && hasAccessToken;
+  const [search, setSearch] = useState("");
+  const [verdict, setVerdict] = useState("all");
 
   const { data, isPending, isError, error } = useQuery({
-    queryKey: queryKeys.investigations.list({ offset: 0, limit: 30 }),
-    queryFn: () => listInvestigations({ offset: 0, limit: 30 }),
+    queryKey: queryKeys.investigations.list({ offset: 0, limit: 50 }),
+    queryFn: () => listInvestigations({ offset: 0, limit: 50 }),
     enabled,
     refetchInterval: 5000,
   });
 
+  const filtered = useMemo(() => {
+    const items = data?.items ?? [];
+    const needle = search.trim().toLowerCase();
+    return items.filter((item) => {
+      if (verdict !== "all" && (item.verdict ?? "").toUpperCase() !== verdict) return false;
+      if (!needle) return true;
+      return (
+        item.alertId.toLowerCase().includes(needle) ||
+        (item.summary?.toLowerCase().includes(needle) ?? false) ||
+        (item.verdict?.toLowerCase().includes(needle) ?? false) ||
+        (item.ruleViolated?.toLowerCase().includes(needle) ?? false)
+      );
+    });
+  }, [data?.items, search, verdict]);
+
   return (
     <Panel>
       <PanelHead title="Investigation queue" />
+      <div className="space-y-3 border-b border-[var(--color-border-tertiary)] px-4 py-3">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search alert ID, summary, rule, or verdict…"
+        />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+            Verdict
+          </span>
+          {VERDICT_FILTERS.map((opt) => (
+            <Chip key={opt.value} active={verdict === opt.value} onClick={() => setVerdict(opt.value)}>
+              {opt.label}
+            </Chip>
+          ))}
+        </div>
+        <p className="text-[11px] text-[var(--color-text-secondary)]">
+          {filtered.length} of {data?.items.length ?? 0} investigations shown
+        </p>
+      </div>
 
       {isPending ? (
         <>
@@ -51,13 +98,13 @@ export default function InvestigationsPage() {
             ? error.message
             : "Failed to load investigations. Check backend connection."}
         </div>
-      ) : data?.items.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="p-6 text-[12px] text-[var(--color-text-secondary)]">
-          No investigations available.
+          No investigations match your filters.
         </div>
       ) : (
         <div>
-          {data?.items.map((item) => {
+          {filtered.map((item) => {
             const verdictColor =
               item.verdict === "ESCALATE"
                 ? { bg: "#FDECEC", color: "#A32D2D", border: "#F4C7C7" }

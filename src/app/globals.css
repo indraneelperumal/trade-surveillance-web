@@ -164,6 +164,128 @@ a { color: inherit; text-decoration: none; }
 }
 .agent-running { animation: agent-pulse 1.6s ease-in-out infinite; }
 
+/* ── Investigation running (finance chart) ───────────────────────────────── */
+.investigation-running {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #1d4ed8;
+  background: linear-gradient(165deg, #0f172a 0%, #1e293b 100%);
+  color: #e2e8f0;
+  overflow: hidden;
+}
+.investigation-running--compact {
+  padding: 10px;
+  gap: 8px;
+}
+.investigation-running__chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3px;
+  height: 72px;
+  padding: 8px 10px 4px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+.investigation-running--compact .investigation-running__chart {
+  height: 48px;
+}
+.investigation-running__grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 100% 18px;
+  pointer-events: none;
+}
+.investigation-running__candle {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  max-width: 10px;
+  height: var(--candle-h, 50%);
+  border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+  animation: candle-pulse 1.4s ease-in-out infinite;
+  animation-delay: var(--candle-delay, 0s);
+  transform-origin: bottom center;
+}
+.investigation-running__candle--down {
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+}
+.investigation-running__scan {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, #60a5fa, transparent);
+  box-shadow: 0 0 12px #3b82f6;
+  animation: chart-scan 2.2s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+.investigation-running__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.investigation-running__ticker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.investigation-running__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: live-dot 1.2s ease-in-out infinite;
+}
+.investigation-running__dot--delay { animation-delay: 0.2s; }
+.investigation-running__dot--delay2 { animation-delay: 0.4s; }
+.investigation-running__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #93c5fd;
+}
+.investigation-running__message {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+.investigation-running__hint {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+@keyframes candle-pulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.85; }
+  50% { transform: scaleY(0.72); opacity: 1; }
+}
+@keyframes chart-scan {
+  0% { left: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: calc(100% - 2px); opacity: 0; }
+}
+@keyframes live-dot {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .investigation-running__candle,
+  .investigation-running__scan,
+  .investigation-running__dot {
+    animation: none;
+  }
+}
+
 /* ── Drawer slide-in ─────────────────────────────────────────────────────── */
 @keyframes slide-in-right {
   from { transform: translateX(100%); opacity: 0; }

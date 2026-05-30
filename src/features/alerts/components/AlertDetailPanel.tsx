@@ -8,6 +8,7 @@ import {
   statusVariant,
 } from "@/features/alerts/adapters/alertView";
 import { AlertActionsForm, type AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
+import { InvestigationRunningAnimation } from "@/features/alerts/components/InvestigationRunningAnimation";
 import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
 import { NotesTimeline } from "@/features/alerts/components/NotesTimeline";
 import { ShapFeatureBar } from "@/features/alerts/components/ShapFeatureBar";
@@ -135,18 +136,7 @@ export function AlertDetailPanel({
         {/* ── AI Investigation CTA ─────────────────────────────────────────── */}
         <div style={{ padding: "14px 16px 0" }}>
           {isRunning ? (
-            <div
-              className="agent-running"
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 9, padding: "12px 16px", borderRadius: 8,
-                background: "#0f172a", border: "1px solid #1d4ed8",
-                color: "#93c5fd", fontSize: 13, fontWeight: 600,
-              }}
-            >
-              <Bot size={15} />
-              Agent running…
-            </div>
+            <InvestigationRunningAnimation compact message="Compliance agent analyzing this alert…" />
           ) : investigation ? (
             <div style={{
               display: "flex", alignItems: "center", gap: 8, padding: "10px 14px",

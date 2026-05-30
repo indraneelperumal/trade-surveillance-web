@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { ApiError } from "@/lib/api/client";
 import { getAlert, listAlerts, patchAlert } from "@/lib/api/endpoints/alerts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,10 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { AlertDetailPanel } from "@/features/alerts/components/AlertDetailPanel";
 import { AlertFilters } from "@/features/alerts/components/AlertFilters";
 import { AlertQueueTable } from "@/features/alerts/components/AlertQueueTable";
+import {
+  filterAlertsClient,
+  symbolFromSearch,
+} from "@/features/alerts/components/QueueSearchToolbar";
 import { AlertActionValues } from "@/features/alerts/components/AlertActionsForm";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -83,6 +87,7 @@ export function AlertsWorkspace({
   const tab = (searchParams.get("tab") as Tab) ?? "all";
   const status = searchParams.get("status") ?? initialStatus;
   const severity = searchParams.get("severity") ?? initialSeverity;
+  const search = searchParams.get("q") ?? "";
   const offset = Number(searchParams.get("offset") ?? initialOffset);
   const limit = Number(searchParams.get("limit") ?? initialLimit);
   const selectedId = searchParams.get("selected") ?? initialSelected;
@@ -100,13 +105,33 @@ export function AlertsWorkspace({
   const queryStatus   = tab === "high" ? "open"  : status   === "all" ? undefined : status;
   const querySeverity = tab === "high" ? "high"   : severity === "all" ? undefined : severity;
 
+  const symbol = symbolFromSearch(search);
+
   const alertsQuery = useQuery({
-    queryKey: queryKeys.alerts.list({ tab, status: queryStatus ?? "all", severity: querySeverity ?? "all", offset, limit }),
-    queryFn: () => listAlerts({ status: queryStatus, severity: querySeverity, offset, limit }),
+    queryKey: queryKeys.alerts.list({
+      tab,
+      status: queryStatus ?? "all",
+      severity: querySeverity ?? "all",
+      offset,
+      limit,
+      q: search,
+      symbol: symbol ?? "",
+    }),
+    queryFn: () =>
+      listAlerts({
+        status: queryStatus,
+        severity: querySeverity,
+        symbol,
+        offset,
+        limit,
+      }),
     enabled: queriesEnabled,
   });
 
-  const alerts = alertsQuery.data?.items ?? [];
+  const alerts = useMemo(
+    () => filterAlertsClient(alertsQuery.data?.items ?? [], search),
+    [alertsQuery.data?.items, search],
+  );
   const total  = alertsQuery.data?.total ?? 0;
   const selectedFromList = selectedId
     ? alerts.find((item) => item.id === selectedId) ?? null
@@ -127,8 +152,6 @@ export function AlertsWorkspace({
     if (pendingAlertId && selectedAlert?.id !== pendingAlertId) setPendingAlertId(null);
   }, [selectedAlert?.id, pendingAlertId]);
 
-  const isRunning = pendingAlertId === selectedAlert?.id || selectedAlert?.status === "in-progress";
-
   const investigationsQuery = useQuery({
     queryKey: queryKeys.investigations.list({ alert_id: selectedId ?? "none" }),
     queryFn: () =>
@@ -136,10 +159,19 @@ export function AlertsWorkspace({
         ? listInvestigations({ alert_id: selectedId, offset: 0, limit: 1 })
         : Promise.resolve({ items: [], total: 0, offset: 0, limit: 1 }),
     enabled: queriesEnabled && Boolean(selectedId),
-    refetchInterval: isRunning ? 3000 : false,
+    refetchInterval: (q) => {
+      if (q.state.data?.items?.[0]) return false;
+      const pending = pendingAlertId === selectedId;
+      const inProgress = selectedAlert?.status === "in-progress";
+      return pending || inProgress ? 3000 : false;
+    },
   });
 
   const latestInvestigation = investigationsQuery.data?.items[0];
+
+  const isRunning =
+    !latestInvestigation &&
+    (pendingAlertId === selectedAlert?.id || selectedAlert?.status === "in-progress");
 
   useEffect(() => {
     if (latestInvestigation && pendingAlertId === selectedAlert?.id) {
@@ -288,17 +320,24 @@ export function AlertsWorkspace({
                 )}
               </button>
             ))}
-            {tab === "all" && (
-              <div style={{ marginLeft: "auto" }}>
-                <AlertFilters
-                  status={status}
-                  severity={severity}
-                  onStatusChange={(next) => updateUrl({ status: next, offset: "0" })}
-                  onSeverityChange={(next) => updateUrl({ severity: next, offset: "0" })}
-                />
-              </div>
-            )}
           </div>
+
+          {tab === "all" && (
+            <AlertFilters
+              status={status}
+              severity={severity}
+              search={search}
+              onStatusChange={(next) => updateUrl({ status: next, offset: "0" })}
+              onSeverityChange={(next) => updateUrl({ severity: next, offset: "0" })}
+              onSearchChange={(next) => {
+                const params = new URLSearchParams(searchParams.toString());
+                if (next.trim()) params.set("q", next);
+                else params.delete("q");
+                params.set("offset", "0");
+                router.push(`${pathname}?${params.toString()}`);
+              }}
+            />
+          )}
 
           {/* Table */}
           <div style={{ flex: 1, overflowY: "auto" }}>

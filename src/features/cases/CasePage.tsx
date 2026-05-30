@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCasePermissions, useRole } from "@/hooks/usePermissions";
 import {
@@ -12,8 +13,11 @@ import {
   escalateAlert,
   takeAlert,
 } from "@/lib/api/endpoints/alertActions";
+import { InvestigationRunningAnimation } from "@/features/alerts/components/InvestigationRunningAnimation";
+import { InvestigationSummary } from "@/features/alerts/components/InvestigationSummary";
+import { CaseNavigator } from "@/features/cases/CaseNavigator";
 import { getCase } from "@/lib/api/endpoints/cases";
-import { triggerInvestigation } from "@/lib/api/endpoints/investigations";
+import { listInvestigations, triggerInvestigation } from "@/lib/api/endpoints/investigations";
 import { listUsers } from "@/lib/api/endpoints/users";
 import { anomalyLabel, DISPOSITION_OPTIONS, statusLabelV2 } from "@/lib/domain/labels";
 import { queryKeys } from "@/lib/api/queryKeys";
@@ -26,6 +30,8 @@ import {
 } from "@/features/alerts/adapters/alertView";
 
 export function CasePage({ alertId }: { alertId: string }) {
+  const searchParams = useSearchParams();
+  const queueContext = searchParams.toString();
   const queryClient = useQueryClient();
   const { hasAccessToken, isLoading: authLoading } = useAuth();
   const { isOfficer } = useRole();
@@ -37,32 +43,55 @@ export function CasePage({ alertId }: { alertId: string }) {
   const investigationRef = useRef<HTMLDivElement>(null);
 
   const caseQuery = useQuery({
-    queryKey: ["cases", alertId, awaitingInvestigation ? "awaiting-agent" : "idle"],
+    queryKey: ["cases", alertId],
     queryFn: () => getCase(alertId),
     enabled: !authLoading && hasAccessToken && Boolean(alertId),
     refetchInterval: (q) => {
-      if (awaitingInvestigation) return 2000;
       const inv = q.state.data?.investigation;
       const st = q.state.data?.alert?.status;
+      if (awaitingInvestigation) return 2000;
       if (st === "in-progress" && !inv) return 2000;
       return false;
     },
   });
 
+  const investigationsQuery = useQuery({
+    queryKey: queryKeys.investigations.list({ alert_id: alertId }),
+    queryFn: () => listInvestigations({ alert_id: alertId, offset: 0, limit: 1 }),
+    enabled: !authLoading && hasAccessToken && Boolean(alertId),
+    refetchInterval: (q) => {
+      const listInv = q.state.data?.items?.[0];
+      const inv = caseQuery.data?.investigation;
+      const st = caseQuery.data?.alert?.status;
+      if (awaitingInvestigation) return 2000;
+      if (st === "in-progress" && !inv && !listInv) return 2000;
+      return false;
+    },
+  });
+
   const bundle = caseQuery.data;
-  const investigation = bundle?.investigation;
+  const caseInvestigation = bundle?.investigation;
+  const listInvestigation = investigationsQuery.data?.items?.[0];
+  const hasInvestigation = Boolean(caseInvestigation ?? listInvestigation);
 
   useEffect(() => {
-    if (investigation) {
+    if (hasInvestigation) {
       setAwaitingInvestigation(false);
     }
-  }, [investigation?.id]);
+  }, [hasInvestigation, caseInvestigation?.id, listInvestigation?.id]);
+
+  // Case bundle can lag behind investigations list — sync when list has a row first.
+  useEffect(() => {
+    if (listInvestigation && !caseInvestigation) {
+      void queryClient.refetchQueries({ queryKey: ["cases", alertId] });
+    }
+  }, [listInvestigation?.id, caseInvestigation, alertId, queryClient]);
 
   useEffect(() => {
-    if (investigation && investigationRef.current) {
+    if (hasInvestigation && investigationRef.current) {
       investigationRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-  }, [investigation?.id]);
+  }, [hasInvestigation, caseInvestigation?.id, listInvestigation?.id]);
 
   const usersQuery = useQuery({
     queryKey: queryKeys.users.list({ offset: 0, limit: 50 }),
@@ -89,7 +118,12 @@ export function CasePage({ alertId }: { alertId: string }) {
     },
     onSuccess: async () => {
       invalidate();
-      await queryClient.refetchQueries({ queryKey: ["cases", alertId] });
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["cases", alertId] }),
+        queryClient.refetchQueries({
+          queryKey: queryKeys.investigations.list({ alert_id: alertId }),
+        }),
+      ]);
     },
     onError: () => {
       setAwaitingInvestigation(false);
@@ -125,14 +159,15 @@ export function CasePage({ alertId }: { alertId: string }) {
   }
 
   const { alert, trade, notes } = bundle;
-  const caseInvestigation = bundle.investigation;
   const isAgentRunning =
-    awaitingInvestigation ||
-    runMut.isPending ||
-    (alert.status === "in-progress" && !caseInvestigation);
+    !hasInvestigation &&
+    (awaitingInvestigation ||
+      runMut.isPending ||
+      alert.status === "in-progress");
 
   return (
     <div className="flex flex-col gap-4">
+      {queueContext ? <CaseNavigator alertId={alertId} queueContext={queueContext} /> : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/queue" className="text-[11px] text-[var(--color-text-secondary)] hover:underline">
@@ -204,11 +239,9 @@ export function CasePage({ alertId }: { alertId: string }) {
             AI investigation
           </h2>
           {isAgentRunning && (
-            <div className="agent-running rounded border border-[#1d4ed8] bg-[#0f172a] px-3 py-2 text-[12px] text-[#93c5fd]">
-              Agent running… results will appear here automatically.
-            </div>
+            <InvestigationRunningAnimation message="Compliance agent reviewing trade, ML signals, and US regulatory rules…" />
           )}
-          {!caseInvestigation && perms.canRunAi && !isAgentRunning && (
+          {!hasInvestigation && perms.canRunAi && !isAgentRunning && (
             <button
               type="button"
               className="btn w-full"
@@ -226,7 +259,10 @@ export function CasePage({ alertId }: { alertId: string }) {
               approving={approveMut.isPending}
             />
           )}
-          {caseInvestigation && (
+          {!caseInvestigation && listInvestigation && (
+            <InvestigationSummary investigation={listInvestigation} />
+          )}
+          {hasInvestigation && (
             <Link
               href="/investigations"
               className="block text-center text-[11px] text-[var(--color-accent-default)] hover:underline"
