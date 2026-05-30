@@ -30,7 +30,7 @@ export function AppShell({ title, actions, children }: AppShellProps) {
       </Suspense>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar title={title} actions={actions} />
-        <main className="app-canvas flex-1 overflow-y-auto p-5">{children}</main>
+        <main className="app-canvas flex-1 overflow-y-auto p-3 md:p-4">{children}</main>
       </div>
     </div>
   );

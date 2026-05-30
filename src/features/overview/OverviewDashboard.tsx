@@ -1,74 +1,70 @@
-import type { ReactNode } from "react";
 import type { OverviewMetrics } from "@/lib/api/endpoints/metrics";
-import { AnomalyDonut } from "@/features/overview/components/AnomalyDonut";
+import { AnomalyRankTable } from "@/features/overview/components/AnomalyRankTable";
 import { DistributionStrip } from "@/features/overview/components/DistributionStrip";
-import { InvestigationsPreview } from "@/features/overview/components/InvestigationsPreview";
+import { OpenCasesSummary } from "@/features/overview/components/OpenCasesSummary";
+import { OpsMetricTiles } from "@/features/overview/components/OpsMetricTiles";
 import { OverviewHero } from "@/features/overview/components/OverviewHero";
-import { PriorityKpiGrid } from "@/features/overview/components/PriorityKpiGrid";
-import { PriorityQueuePreview } from "@/features/overview/components/PriorityQueuePreview";
-import { TopSymbols } from "@/features/overview/components/TopSymbols";
+import { TopSymbolsTable } from "@/features/overview/components/TopSymbolsTable";
 import { WorkloadPanel } from "@/features/overview/components/WorkloadPanel";
-import type { Alert, Investigation } from "@/types/domain";
 
 export type OverviewDashboardProps = {
   metrics: OverviewMetrics | null;
-  priorityAlerts?: Alert[];
-  investigations?: Investigation[];
-  alertById?: Map<string, Alert>;
   isLoading?: boolean;
-  priorityLoading?: boolean;
-  investigationsLoading?: boolean;
   metricsError?: boolean;
   metricsErrorMessage?: string;
   isOfficer?: boolean;
   displayName?: string;
 };
 
-function SectionLabel({ children }: { children: ReactNode }) {
+function OverviewSkeleton() {
   return (
-    <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-      {children}
-    </h2>
+    <div className="animate-pulse space-y-3">
+      <div className="h-24 rounded-xl bg-[var(--color-background-secondary)]" />
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div className="h-52 rounded-xl bg-[var(--color-background-secondary)] lg:col-span-2" />
+        <div className="h-52 rounded-xl bg-[var(--color-background-secondary)]" />
+      </div>
+      <div className="h-56 rounded-xl bg-[var(--color-background-secondary)]" />
+    </div>
   );
 }
 
-function OverviewSkeleton() {
+function PipelineStats({ metrics }: { metrics: OverviewMetrics }) {
   return (
-    <div className="animate-pulse space-y-5">
-      <div className="h-36 rounded-[10px] bg-[var(--color-background-secondary)]" />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-28 rounded-[10px] bg-[var(--color-background-secondary)]" />
+    <div className="rounded-[10px] border border-[var(--color-border-tertiary)] bg-[var(--color-background-primary)] p-4">
+      <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">
+        Book totals
+      </div>
+      <dl className="space-y-2.5 text-[12px]">
+        {[
+          ["Trades monitored", metrics.totalTrades],
+          ["All alerts", metrics.totalAlerts],
+          ["Open high severity", metrics.openHighSeverityCount],
+          ["Stale open (24h+)", metrics.staleOpen24h],
+        ].map(([label, val]) => (
+          <div key={String(label)} className="flex items-center justify-between gap-4">
+            <dt className="text-[var(--color-text-secondary)]">{label}</dt>
+            <dd className="font-semibold tabular-nums">{Number(val).toLocaleString()}</dd>
+          </div>
         ))}
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-48 rounded-[10px] bg-[var(--color-background-secondary)]" />
-        <div className="h-48 rounded-[10px] bg-[var(--color-background-secondary)]" />
-      </div>
+      </dl>
     </div>
   );
 }
 
 export function OverviewDashboard({
   metrics,
-  priorityAlerts = [],
-  investigations = [],
-  alertById = new Map(),
   isLoading = false,
-  priorityLoading = false,
-  investigationsLoading = false,
   metricsError = false,
   metricsErrorMessage,
   isOfficer = false,
   displayName,
 }: OverviewDashboardProps) {
-  if (isLoading) {
-    return <OverviewSkeleton />;
-  }
+  if (isLoading) return <OverviewSkeleton />;
 
   if (metricsError) {
     return (
-      <div className="app-surface rounded-[10px] border-[#F4C7C7] bg-[#FCEBEB] p-4 text-[12px] text-[#A32D2D]">
+      <div className="rounded-[10px] border border-[#F4C7C7] bg-[#FCEBEB] p-4 text-[12px] text-[#A32D2D]">
         {metricsErrorMessage ?? "Metrics unavailable. Check API connection."}
       </div>
     );
@@ -76,76 +72,40 @@ export function OverviewDashboard({
 
   if (!metrics) return null;
 
-  const escalateCount =
-    (metrics.alertsByStatus.escalated ?? 0) + (metrics.alertsByStatus["pending-officer-review"] ?? 0);
-
   return (
-    <div className="mx-auto flex max-w-[1280px] flex-col gap-5">
+    <div className="flex w-full min-w-0 flex-col gap-3">
       <OverviewHero metrics={metrics} isOfficer={isOfficer} displayName={displayName} />
 
-      <section>
-        <SectionLabel>Requires attention now</SectionLabel>
-        <PriorityKpiGrid
-          openHigh={metrics.openHighSeverityCount}
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <OpenCasesSummary metrics={metrics} />
+        </div>
+        <OpsMetricTiles
           unassignedHigh={metrics.openUnassignedHigh}
           pendingOfficer={metrics.pendingOfficerReview}
           staleSla={metrics.slaBreachCount}
         />
-      </section>
+      </div>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <PriorityQueuePreview alerts={priorityAlerts} isLoading={priorityLoading} />
-        <InvestigationsPreview
-          investigations={investigations}
-          alertById={alertById}
-          isLoading={investigationsLoading}
-        />
-      </section>
+      <TopSymbolsTable rows={metrics.topSymbolsByAlerts} totalAlerts={metrics.totalAlerts} />
 
-      <section>
-        <SectionLabel>Queue health</SectionLabel>
-        <DistributionStrip
-          alertsByStatus={metrics.alertsByStatus}
-          openAlertsBySeverity={metrics.openAlertsBySeverity}
-        />
-      </section>
+      <AnomalyRankTable alertsByAnomalyType={metrics.alertsByAnomalyType} />
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <SectionLabel>Anomaly mix</SectionLabel>
-          <AnomalyDonut alertsByAnomalyType={metrics.alertsByAnomalyType} />
+      <div className="grid gap-3 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <DistributionStrip
+            alertsByStatus={metrics.alertsByStatus}
+            openAlertsBySeverity={metrics.openAlertsBySeverity}
+          />
         </div>
-        <div className="lg:col-span-1">
-          <SectionLabel>Symbol concentration</SectionLabel>
-          <TopSymbols rows={metrics.topSymbolsByAlerts} />
-        </div>
-        <div className="lg:col-span-1">
+        <div className="flex flex-col gap-3">
           {metrics.alertsPerAssignee.length > 0 ? (
-            <>
-              <SectionLabel>Analyst capacity</SectionLabel>
-              <WorkloadPanel rows={metrics.alertsPerAssignee} />
-            </>
+            <WorkloadPanel rows={metrics.alertsPerAssignee} />
           ) : (
-            <>
-              <SectionLabel>Pipeline snapshot</SectionLabel>
-              <div className="app-surface space-y-3 p-4 text-[12px]">
-                <div className="flex justify-between border-b border-[var(--color-border-tertiary)] pb-2">
-                  <span className="text-[var(--color-text-secondary)]">Total alerts</span>
-                  <span className="font-semibold tabular-nums">{metrics.totalAlerts.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between border-b border-[var(--color-border-tertiary)] pb-2">
-                  <span className="text-[var(--color-text-secondary)]">Escalated / officer queue</span>
-                  <span className="font-semibold tabular-nums">{escalateCount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-text-secondary)]">Stale open (&gt;24h)</span>
-                  <span className="font-semibold tabular-nums">{metrics.staleOpen24h.toLocaleString()}</span>
-                </div>
-              </div>
-            </>
+            <PipelineStats metrics={metrics} />
           )}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
