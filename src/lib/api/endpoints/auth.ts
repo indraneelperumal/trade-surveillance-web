@@ -31,7 +31,12 @@ function camelizeValue(value: unknown): unknown {
   return value;
 }
 
+const AUTH_REQUEST_TIMEOUT_MS = 60_000;
+
 async function authPost<T>(path: string, body: Record<string, string>): Promise<T> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
+
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -39,14 +44,25 @@ async function authPost<T>(path: string, body: Record<string, string>): Promise<
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: controller.signal,
     });
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new ApiError(
+        "The server is taking too long to respond (often a cold start on Render). Wait a moment and try again.",
+        "TIMEOUT",
+        0,
+        error,
+      );
+    }
     throw new ApiError(
-      "Unable to reach backend API. Check NEXT_PUBLIC_API_BASE_URL and backend server status.",
+      "Unable to reach backend API. Check NEXT_PUBLIC_API_BASE_URL and that the API is running.",
       "NETWORK_ERROR",
       0,
       error,
     );
+  } finally {
+    window.clearTimeout(timer);
   }
 
   if (!response.ok) {

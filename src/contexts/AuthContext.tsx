@@ -102,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           setAuthToken(null);
           setUser(null);
+          updateAccessTokenFlag(null);
           setIsLoading(false);
         }
         return;
@@ -111,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = stored.accessToken || null;
       setAuthToken(token);
       updateAccessTokenFlag(token);
+      // Unblock UI immediately — validate/refresh in background (Render cold start can take 30–60s).
+      if (!cancelled) setIsLoading(false);
 
       const now = Math.floor(Date.now() / 1000);
       const needsRefresh =
@@ -132,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setAuthToken(null);
             setUser(null);
             updateAccessTokenFlag(null);
-            setIsLoading(false);
           }
           return;
         }
@@ -143,11 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const session = await getAuthSession();
           if (!cancelled) setUser(session.user);
         } catch {
-          // keep stored user if session endpoint fails
+          // keep stored user if session endpoint fails (e.g. API waking up)
         }
       }
-
-      if (!cancelled) setIsLoading(false);
     }
 
     void bootstrap();

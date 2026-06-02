@@ -9,42 +9,58 @@ import { Suspense, useEffect, useState } from "react";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn, isAuthenticated, isLoading: authLoading, defaultRoute } = useAuth();
+  const { signIn, isAuthenticated, defaultRoute } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (authLoading || !isAuthenticated) return;
+    if (!isAuthenticated || isLoading) return;
     const raw = searchParams.get("redirectTo") ?? "";
     const redirectTo =
       raw.startsWith("/") && !raw.startsWith("//") ? raw : defaultRoute;
     router.replace(redirectTo);
-  }, [authLoading, isAuthenticated, router, searchParams, defaultRoute]);
+  }, [isAuthenticated, isLoading, router, searchParams, defaultRoute]);
+
+  // Warm API on login page load so sign-in is faster after idle.
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+    fetch(`${base}/health`, { cache: "no-store" }).catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    let landing = defaultRoute;
     try {
-      landing = await signIn(email, password);
+      const route = await signIn(email, password);
+      const raw = searchParams.get("redirectTo") ?? "";
+      const redirectTo =
+        raw.startsWith("/") && !raw.startsWith("//") ? raw : route;
+      router.replace(redirectTo);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Sign in failed. Please try again.";
       setError(message);
       setIsLoading(false);
-      return;
     }
-
-    const raw = searchParams.get("redirectTo") ?? "";
-    const redirectTo =
-      raw.startsWith("/") && !raw.startsWith("//") ? raw : landing;
-    router.push(redirectTo);
-    router.refresh();
   }
+
+  const fieldStyle = (disabled: boolean): React.CSSProperties => ({
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "8px 10px",
+    fontSize: 13,
+    border: "1px solid var(--color-border-secondary)",
+    borderRadius: 5,
+    outline: "none",
+    color: "var(--color-text-primary)",
+    background: "var(--color-background-secondary)",
+    opacity: disabled ? 0.7 : 1,
+    cursor: disabled ? "not-allowed" : "text",
+  });
 
   return (
     <div className="login-shell">
@@ -55,7 +71,11 @@ function LoginForm() {
           <p className="login-card__sub">Agentic trade surveillance analyst platform</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          aria-busy={isLoading}
+        >
           <div>
             <label
               htmlFor="email"
@@ -74,25 +94,12 @@ function LoginForm() {
               type="email"
               required
               autoComplete="email"
+              disabled={isLoading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "8px 10px",
-                fontSize: 13,
-                border: "1px solid var(--color-border-secondary)",
-                borderRadius: 5,
-                outline: "none",
-                color: "var(--color-text-primary)",
-                background: "var(--color-background-secondary)",
-              }}
-              placeholder="analyst@ats.com"
+              style={fieldStyle(isLoading)}
             />
           </div>
-          <p style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginTop: 8, lineHeight: 1.5 }}>
-            Demo: analyst@ats.com (Analyst) · compliance@ats.com (Compliance officer)
-          </p>
 
           <div>
             <label
@@ -112,20 +119,10 @@ function LoginForm() {
               type="password"
               required
               autoComplete="current-password"
+              disabled={isLoading}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "8px 10px",
-                fontSize: 13,
-                border: "1px solid var(--color-border-secondary)",
-                borderRadius: 5,
-                outline: "none",
-                color: "var(--color-text-primary)",
-                background: "var(--color-background-secondary)",
-              }}
-              placeholder="••••••••"
+              style={fieldStyle(isLoading)}
             />
           </div>
 
